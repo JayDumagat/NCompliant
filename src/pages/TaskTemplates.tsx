@@ -11,11 +11,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Plus, Play, Pencil, Trash2, Copy, RefreshCw, X, GripVertical } from 'lucide-react';
 import { toast } from 'sonner';
 import { useState } from 'react';
-import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 
 const CAT_LABEL: Record<string, string> = { audit: 'Audit', policy_review: 'Policy Review', pia: 'PIA', incident: 'Incident', training: 'Training', report: 'Report', custom: 'Custom' };
-const CAT_CLR: Record<string, string> = { audit: 'bg-blue-500/10 text-blue-600', policy_review: 'bg-primary/10 text-primary', pia: 'bg-amber-500/10 text-amber-600', incident: 'bg-destructive/10 text-destructive', training: 'bg-emerald-500/10 text-emerald-600', report: 'bg-violet-500/10 text-violet-600', custom: 'bg-muted text-muted-foreground' };
 
 interface FormState {
   title: string; description: string; category: TaskTemplate['category']; priority: TaskTemplate['priority'];

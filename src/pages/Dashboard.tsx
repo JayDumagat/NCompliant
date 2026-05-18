@@ -1,15 +1,13 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/db/db';
-import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { ArrowRight, Clock, ArrowUpRight } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 export default function Dashboard() {
-  const navigate = useNavigate();
   const policies = useLiveQuery(() => db.policies.toArray(), []);
   const tasks = useLiveQuery(() => db.tasks.toArray(), []);
   const updates = useLiveQuery(() => db.updates.toArray(), []);
@@ -18,11 +16,8 @@ export default function Dashboard() {
   const training = useLiveQuery(() => db.trainingRecords.toArray(), []);
 
   const now = Date.now();
-  const d30 = 30 * 86400000;
-
   const totalPolicies = policies?.length ?? 0;
   const activePolicies = policies?.filter((p) => p.status === 'active').length ?? 0;
-  const draftPolicies = policies?.filter((p) => p.status === 'draft').length ?? 0;
 
   const totalTasks = tasks?.length ?? 0;
   const doneTasks = tasks?.filter((t) => t.status === 'done').length ?? 0;

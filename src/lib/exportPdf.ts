@@ -127,7 +127,6 @@ export function exportAssessmentPDF(a: Assessment) {
   const nc=a.answers.filter(x=>x.answer==='no').length;
   const pc=a.answers.filter(x=>x.answer==='partial').length;
   const tot=a.answers.length;
-  const applicable = a.answers.filter(x=>x.answer!=='na').length;
 
   // Build type-specific body
   let body = '';
