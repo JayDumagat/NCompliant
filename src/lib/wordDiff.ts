@@ -3,7 +3,7 @@ export type DiffToken = {
   type: 'same' | 'added' | 'removed';
 };
 
-const tokenize = (text: string): string[] => text.split(/(\s+)/).filter(Boolean);
+const tokenize = (text: string): string[] => text.split(/(\s+)/).filter((s) => s !== '');
 const hasWordChars = (token: string): boolean => /[\p{L}\p{N}]/u.test(token);
 const normalize = (token: string): string =>
   token.toLowerCase().replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, '');
