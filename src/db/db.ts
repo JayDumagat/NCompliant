@@ -97,9 +97,12 @@ export interface Assessment {
 export interface AssessmentVersion {
   version: number;
   score: number;
-  riskLevel: string;
+  riskLevel: Assessment['riskLevel'];
   completedAt: number;
   note: string;
+  findings?: string;
+  recommendations?: string;
+  answers?: AssessmentAnswer[];
 }
 
 // --- New entity types ---

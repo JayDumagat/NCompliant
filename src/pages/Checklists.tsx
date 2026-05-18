@@ -45,7 +45,7 @@ function NewChecklistDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild><Button className="gap-2 shrink-0"><Plus className="h-4 w-4" /><span className="hidden sm:inline">New Checklist</span></Button></DialogTrigger>
-      <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto custom-scrollbar">
         <DialogHeader><DialogTitle>New Checklist</DialogTitle></DialogHeader>
         <div className="space-y-4 py-2">
           <div className="space-y-2"><Label>Title</Label><Input value={f.title} onChange={e => setF({ ...f, title: e.target.value })} placeholder="Checklist name" /></div>
@@ -54,8 +54,8 @@ function NewChecklistDialog() {
               <Select value={f.type} onValueChange={v => setF({ ...f, type: v as Checklist['type'] })}><SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>{Object.entries(TYPE_LABEL).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}</SelectContent></Select></div>
             <div className="space-y-2"><Label>Linked Policy</Label>
-              <Select value={f.linkedPolicyId} onValueChange={v => setF({ ...f, linkedPolicyId: v })}><SelectTrigger><SelectValue placeholder="None" /></SelectTrigger>
-                <SelectContent><SelectItem value="">None</SelectItem>{policies?.map(p => <SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>)}</SelectContent></Select></div>
+              <Select value={f.linkedPolicyId || '__none__'} onValueChange={v => setF({ ...f, linkedPolicyId: v === '__none__' ? '' : v })}><SelectTrigger><SelectValue placeholder="None" /></SelectTrigger>
+                <SelectContent><SelectItem value="__none__">None</SelectItem>{policies?.map(p => <SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>)}</SelectContent></Select></div>
           </div>
           <div className="space-y-2">
             <Label>Items ({f.items.length})</Label>

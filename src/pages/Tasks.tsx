@@ -38,7 +38,7 @@ function TaskDialog({ task, trigger, onDone }: { task?: Task; trigger: React.Rea
   return (
     <Dialog open={open} onOpenChange={handleOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto custom-scrollbar">
         <DialogHeader><DialogTitle>{task ? 'Edit Task' : 'New Task'}</DialogTitle></DialogHeader>
         <div className="space-y-4 py-2">
           <div className="space-y-2"><Label>Title</Label><Input value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} placeholder="Task title" /></div>
@@ -56,8 +56,8 @@ function TaskDialog({ task, trigger, onDone }: { task?: Task; trigger: React.Rea
             <div className="space-y-2"><Label>Due Date</Label><Input type="date" value={f.dueDate} onChange={(e) => setF({ ...f, dueDate: e.target.value })} /></div>
           </div>
           <div className="space-y-2"><Label>Linked Policy</Label>
-            <Select value={f.policyId} onValueChange={(v) => setF({ ...f, policyId: v })}><SelectTrigger><SelectValue placeholder="None" /></SelectTrigger>
-              <SelectContent><SelectItem value="">None</SelectItem>{policies?.map((p) => <SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>)}</SelectContent></Select></div>
+            <Select value={f.policyId || '__none__'} onValueChange={(v) => setF({ ...f, policyId: v === '__none__' ? '' : v })}><SelectTrigger><SelectValue placeholder="None" /></SelectTrigger>
+              <SelectContent><SelectItem value="__none__">None</SelectItem>{policies?.map((p) => <SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>)}</SelectContent></Select></div>
         </div>
         <div className="flex justify-end gap-2 pt-2">
           <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>

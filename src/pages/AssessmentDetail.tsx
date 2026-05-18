@@ -10,12 +10,14 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ArrowLeft, Download, Trash2, FileText } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { exportAssessmentPDF } from '@/lib/exportPdf';
+import { diffTokens } from '@/lib/wordDiff';
 
 const PIA_QS = [
   { id: 'q1', text: 'Is explicit consent obtained from data subjects?', cat: 'Consent' },
@@ -52,6 +54,17 @@ const SEC_QS = [
 ];
 const QS_MAP: Record<AssessmentType, { id: string; text: string; cat: string }[]> = { pia: PIA_QS, risk_assessment: RISK_QS, security_checklist: SEC_QS };
 
+type AssessmentSnapshot = {
+  version: number;
+  score: number;
+  riskLevel: Assessment['riskLevel'];
+  completedAt: number;
+  note: string;
+  findings?: string;
+  recommendations?: string;
+  answers?: AssessmentAnswer[];
+};
+
 function calcScore(answers: AssessmentAnswer[]): number {
   if (!answers.length) return 0;
   const pts = answers.reduce((s, a) => s + (a.answer === 'yes' ? 10 : a.answer === 'partial' ? 5 : a.answer === 'na' ? 10 : 0), 0);
@@ -69,6 +82,9 @@ export default function AssessmentDetail() {
   const [findings, setFindings] = useState('');
   const [recs, setRecs] = useState('');
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [compareOpen, setCompareOpen] = useState(false);
+  const [leftVersion, setLeftVersion] = useState('1');
+  const [rightVersion, setRightVersion] = useState('2');
 
   if (!assessment) return <div className="py-16 text-center text-muted-foreground">Assessment not found. <button onClick={() => nav('/assessments')} className="underline">Back</button></div>;
 
@@ -86,8 +102,17 @@ export default function AssessmentDetail() {
 
   const save = async () => { await db.assessments.update(assessment.id, { answers, score, riskLevel: risk, status: 'in_progress', findings, recommendations: recs }); toast.success('Progress saved'); };
   const complete = async () => {
-    const now = Date.now();
-    const ver = { version: (assessment.versions?.length ?? 0) + 1, score, riskLevel: risk, completedAt: now, note: 'Assessment completed' };
+    const now = new Date().valueOf();
+    const ver = {
+      version: (assessment.versions?.length ?? 0) + 1,
+      score,
+      riskLevel: risk,
+      completedAt: now,
+      note: 'Assessment completed',
+      findings,
+      recommendations: recs,
+      answers: answers.map((a) => ({ ...a })),
+    };
     await db.assessments.update(assessment.id, { answers, score, riskLevel: risk, status: 'completed', completedAt: now, findings, recommendations: recs, versions: [...(assessment.versions ?? []), ver] });
     toast.success('Assessment completed'); nav('/assessments');
   };
@@ -102,6 +127,31 @@ export default function AssessmentDetail() {
     toast.success('Assessment deleted');
     nav('/assessments');
   };
+
+  const snapshots: AssessmentSnapshot[] = [
+    ...(assessment.versions ?? []),
+    {
+      version: (assessment.versions?.length ?? 0) + 1,
+      score,
+      riskLevel: risk,
+      completedAt: assessment.completedAt ?? assessment.createdAt,
+      note: 'Current',
+      findings,
+      recommendations: recs,
+      answers,
+    },
+  ];
+  const leftSnapshot = snapshots.find((v) => String(v.version) === leftVersion) ?? snapshots[0];
+  const rightSnapshot = snapshots.find((v) => String(v.version) === rightVersion) ?? snapshots[snapshots.length - 1];
+
+  const answerChanges = (() => {
+    const leftMap = new Map((leftSnapshot.answers ?? []).map((a) => [a.questionId, a.answer]));
+    const rightMap = new Map((rightSnapshot.answers ?? []).map((a) => [a.questionId, a.answer]));
+    const ids = Array.from(new Set([...leftMap.keys(), ...rightMap.keys()]));
+    return ids
+      .map((id) => ({ id, before: leftMap.get(id) ?? '—', after: rightMap.get(id) ?? '—', q: questions.find((q) => q.id === id)?.text ?? id }))
+      .filter((row) => row.before !== row.after);
+  })();
 
   return (
     <div className="space-y-8">
@@ -200,12 +250,109 @@ export default function AssessmentDetail() {
         <TabsContent value="history" className="mt-6">
           <Card><CardContent className="py-6">
             {!assessment.versions?.length ? <p className="text-sm text-muted-foreground py-8 text-center">No versions yet.</p> : (
-              <div className="space-y-3">{assessment.versions.slice().reverse().map(v => (
-                <div key={v.version} className="flex items-start gap-4 rounded-lg border p-4">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-muted text-sm font-semibold">v{v.version}</div>
-                  <div><p className="text-sm font-medium">{v.note} — Score: {v.score}% ({v.riskLevel} risk)</p><p className="text-sm text-muted-foreground mt-0.5">{new Date(v.completedAt).toLocaleString()}</p></div>
+              <div className="space-y-4">
+                <div className="flex justify-end">
+                  <Dialog
+                    open={compareOpen}
+                    onOpenChange={(open) => {
+                      if (open && snapshots.length) {
+                        const lastSnapshot = snapshots[snapshots.length - 1];
+                        const previousSnapshot = snapshots[Math.max(0, snapshots.length - 2)] ?? lastSnapshot;
+                        setLeftVersion(String(previousSnapshot.version));
+                        setRightVersion(String(lastSnapshot.version));
+                      }
+                      setCompareOpen(open);
+                    }}
+                  >
+                    <DialogTrigger asChild>
+                      <Button variant="outline" size="sm" className="text-xs h-8">Compare Versions</Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-6xl">
+                      <DialogHeader><DialogTitle>Compare Assessment Versions</DialogTitle></DialogHeader>
+                      <div className="grid gap-3 sm:grid-cols-2 py-2">
+                        <div className="space-y-2">
+                          <p className="text-xs text-muted-foreground uppercase tracking-wider">Base</p>
+                          <Select value={leftVersion} onValueChange={setLeftVersion}>
+                            <SelectTrigger><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              {snapshots.map((v) => <SelectItem key={`left-${v.version}`} value={String(v.version)}>v{v.version} · {v.note}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <p className="text-xs text-muted-foreground uppercase tracking-wider">Compare</p>
+                          <Select value={rightVersion} onValueChange={setRightVersion}>
+                            <SelectTrigger><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              {snapshots.map((v) => <SelectItem key={`right-${v.version}`} value={String(v.version)}>v{v.version} · {v.note}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <div className="rounded-lg border p-4 space-y-3">
+                          <p className="text-sm font-medium">v{leftSnapshot.version} · Score {leftSnapshot.score}% ({leftSnapshot.riskLevel})</p>
+                          <div>
+                            <p className="text-xs text-muted-foreground mb-1">Findings</p>
+                            <div className="max-h-[22vh] overflow-y-auto custom-scrollbar text-sm whitespace-pre-wrap leading-relaxed rounded border p-3">
+                              {diffTokens(leftSnapshot.findings ?? '', rightSnapshot.findings ?? '', 'removed').map((part, i) => (
+                                <span key={`left-findings-${i}`} className={part.type === 'removed' ? 'bg-red-200/60 dark:bg-red-900/40 rounded-sm' : ''}>{part.text}</span>
+                              ))}
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground mb-1">Recommendations</p>
+                            <div className="max-h-[22vh] overflow-y-auto custom-scrollbar text-sm whitespace-pre-wrap leading-relaxed rounded border p-3">
+                              {diffTokens(leftSnapshot.recommendations ?? '', rightSnapshot.recommendations ?? '', 'removed').map((part, i) => (
+                                <span key={`left-recs-${i}`} className={part.type === 'removed' ? 'bg-red-200/60 dark:bg-red-900/40 rounded-sm' : ''}>{part.text}</span>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="rounded-lg border p-4 space-y-3">
+                          <p className="text-sm font-medium">v{rightSnapshot.version} · Score {rightSnapshot.score}% ({rightSnapshot.riskLevel})</p>
+                          <div>
+                            <p className="text-xs text-muted-foreground mb-1">Findings</p>
+                            <div className="max-h-[22vh] overflow-y-auto custom-scrollbar text-sm whitespace-pre-wrap leading-relaxed rounded border p-3">
+                              {diffTokens(leftSnapshot.findings ?? '', rightSnapshot.findings ?? '', 'added').map((part, i) => (
+                                <span key={`right-findings-${i}`} className={part.type === 'added' ? 'bg-emerald-200/60 dark:bg-emerald-900/40 rounded-sm' : ''}>{part.text}</span>
+                              ))}
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground mb-1">Recommendations</p>
+                            <div className="max-h-[22vh] overflow-y-auto custom-scrollbar text-sm whitespace-pre-wrap leading-relaxed rounded border p-3">
+                              {diffTokens(leftSnapshot.recommendations ?? '', rightSnapshot.recommendations ?? '', 'added').map((part, i) => (
+                                <span key={`right-recs-${i}`} className={part.type === 'added' ? 'bg-emerald-200/60 dark:bg-emerald-900/40 rounded-sm' : ''}>{part.text}</span>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="rounded-lg border p-4">
+                        <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Changed Answers ({answerChanges.length})</p>
+                        {!answerChanges.length ? <p className="text-sm text-muted-foreground">No answer changes.</p> : (
+                          <div className="space-y-2 max-h-[24vh] overflow-y-auto custom-scrollbar">
+                            {answerChanges.map((row) => (
+                              <div key={row.id} className="rounded border p-2.5 text-xs">
+                                <p className="font-medium mb-1">{row.q}</p>
+                                <p><span className="text-muted-foreground">Before:</span> {row.before}</p>
+                                <p><span className="text-muted-foreground">After:</span> {row.after}</p>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                 </div>
-              ))}</div>
+                <div className="space-y-3">{assessment.versions.slice().reverse().map(v => (
+                  <div key={v.version} className="flex items-start gap-4 rounded-lg border p-4">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-muted text-sm font-semibold">v{v.version}</div>
+                    <div><p className="text-sm font-medium">{v.note} — Score: {v.score}% ({v.riskLevel} risk)</p><p className="text-sm text-muted-foreground mt-0.5">{new Date(v.completedAt).toLocaleString()}</p></div>
+                  </div>
+                ))}</div>
+              </div>
             )}
           </CardContent></Card>
         </TabsContent>
