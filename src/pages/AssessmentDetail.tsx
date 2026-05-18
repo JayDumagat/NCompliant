@@ -102,7 +102,7 @@ export default function AssessmentDetail() {
 
   const save = async () => { await db.assessments.update(assessment.id, { answers, score, riskLevel: risk, status: 'in_progress', findings, recommendations: recs }); toast.success('Progress saved'); };
   const complete = async () => {
-    const now = Date.now();
+    const now = new Date().valueOf();
     const ver = {
       version: (assessment.versions?.length ?? 0) + 1,
       score,
