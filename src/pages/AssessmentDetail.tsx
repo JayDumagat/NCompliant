@@ -255,9 +255,11 @@ export default function AssessmentDetail() {
                   <Dialog
                     open={compareOpen}
                     onOpenChange={(open) => {
-                      if (open) {
-                        setLeftVersion(String(snapshots[Math.max(0, snapshots.length - 2)]?.version ?? 1));
-                        setRightVersion(String(snapshots[snapshots.length - 1]?.version ?? 1));
+                      if (open && snapshots.length) {
+                        const lastSnapshot = snapshots[snapshots.length - 1];
+                        const previousSnapshot = snapshots[Math.max(0, snapshots.length - 2)] ?? lastSnapshot;
+                        setLeftVersion(String(previousSnapshot.version));
+                        setRightVersion(String(lastSnapshot.version));
                       }
                       setCompareOpen(open);
                     }}
