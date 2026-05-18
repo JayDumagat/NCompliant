@@ -41,4 +41,3 @@ export const diffTokens = (
     return { text: token, type: mode };
   });
 };
-
