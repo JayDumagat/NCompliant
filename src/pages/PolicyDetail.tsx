@@ -4,12 +4,14 @@ import { db } from '@/db/db';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { ArrowLeft, Download, Trash2, FileText } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { exportPolicyPDF } from '@/lib/exportPdf';
+import { diffTokens } from '@/lib/wordDiff';
 
 const SL: Record<string, string> = { draft: 'Draft', active: 'Active', under_review: 'Review', archived: 'Archived' };
 const RF: Record<string, string> = { none: 'No schedule', monthly: 'Monthly', quarterly: 'Quarterly', semi_annual: 'Semi-Annual', annual: 'Annual' };
@@ -22,6 +24,23 @@ export default function PolicyDetail() {
   const linked = useLiveQuery(() => (id ? db.tasks.where('policyId').equals(id).toArray() : []), [id]);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
+  const [compareOpen, setCompareOpen] = useState(false);
+  const [leftVersion, setLeftVersion] = useState('1');
+  const [rightVersion, setRightVersion] = useState('2');
+
+  const snapshots = policy
+    ? [
+        ...(policy.versions ?? []),
+        {
+          version: (policy.versions?.length ?? 0) + 1,
+          content: policy.content,
+          updatedAt: policy.lastUpdated,
+          note: 'Current content',
+        },
+      ]
+    : [];
+  const leftSnapshot = snapshots.find((v) => String(v.version) === leftVersion) ?? snapshots[0];
+  const rightSnapshot = snapshots.find((v) => String(v.version) === rightVersion) ?? snapshots[snapshots.length - 1];
 
   if (!policy) return <div className="py-16 text-center text-muted-foreground">Policy not found. <Link to="/policies" className="underline">Back</Link></div>;
 
@@ -158,7 +177,71 @@ export default function PolicyDetail() {
 
         <TabsContent value="history" className="mt-6">
           {!policy.versions?.length ? <p className="text-sm text-muted-foreground py-8 text-center">No version history yet.</p> : (
-            <div className="space-y-0">
+            <div className="space-y-4">
+              <div className="flex justify-end">
+                <Dialog
+                  open={compareOpen}
+                  onOpenChange={(open) => {
+                    if (open && snapshots.length) {
+                      setLeftVersion(String(Math.max(1, snapshots.length - 1)));
+                      setRightVersion(String(snapshots.length));
+                    }
+                    setCompareOpen(open);
+                  }}
+                >
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="sm" className="text-xs h-8">Compare Versions</Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-5xl">
+                    <DialogHeader><DialogTitle>Compare Policy Versions</DialogTitle></DialogHeader>
+                    <div className="grid gap-3 sm:grid-cols-2 py-2">
+                      <div className="space-y-2">
+                        <p className="text-xs text-muted-foreground uppercase tracking-wider">Base</p>
+                        <Select value={leftVersion} onValueChange={setLeftVersion}>
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            {snapshots.map((v) => <SelectItem key={`left-${v.version}`} value={String(v.version)}>v{v.version} · {v.note}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <p className="text-xs text-muted-foreground uppercase tracking-wider">Compare</p>
+                        <Select value={rightVersion} onValueChange={setRightVersion}>
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            {snapshots.map((v) => <SelectItem key={`right-${v.version}`} value={String(v.version)}>v{v.version} · {v.note}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div className="rounded-lg border">
+                        <div className="border-b p-3">
+                          <p className="text-xs text-muted-foreground">v{leftSnapshot.version}</p>
+                          <p className="text-sm font-medium">{leftSnapshot.note}</p>
+                        </div>
+                        <div className="max-h-[55vh] overflow-y-auto custom-scrollbar p-3 text-sm whitespace-pre-wrap leading-relaxed">
+                          {diffTokens(leftSnapshot.content, rightSnapshot.content, 'removed').map((part, i) => (
+                            <span key={`left-part-${i}`} className={part.type === 'removed' ? 'bg-red-200/60 dark:bg-red-900/40 rounded-sm' : ''}>{part.text}</span>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="rounded-lg border">
+                        <div className="border-b p-3">
+                          <p className="text-xs text-muted-foreground">v{rightSnapshot.version}</p>
+                          <p className="text-sm font-medium">{rightSnapshot.note}</p>
+                        </div>
+                        <div className="max-h-[55vh] overflow-y-auto custom-scrollbar p-3 text-sm whitespace-pre-wrap leading-relaxed">
+                          {diffTokens(leftSnapshot.content, rightSnapshot.content, 'added').map((part, i) => (
+                            <span key={`right-part-${i}`} className={part.type === 'added' ? 'bg-emerald-200/60 dark:bg-emerald-900/40 rounded-sm' : ''}>{part.text}</span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
+              <div className="space-y-0">
               {policy.versions.slice().reverse().map((v) => (
                 <div key={v.version} className="flex items-center justify-between py-3 border-b last:border-0">
                   <div>
@@ -168,6 +251,7 @@ export default function PolicyDetail() {
                   <span className="text-xs text-muted-foreground tabular-nums">v{v.version}</span>
                 </div>
               ))}
+            </div>
             </div>
           )}
         </TabsContent>
