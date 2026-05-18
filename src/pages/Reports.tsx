@@ -7,7 +7,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { Plus, Download, FileText, Trash2, BarChart3 } from 'lucide-react';
 import { exportReportPDF } from '@/lib/exportPdf';

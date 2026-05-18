@@ -14,7 +14,6 @@ import { useState } from 'react';
 import { cn } from '@/lib/utils';
 
 const TYPE_LABEL: Record<string, string> = { data_breach: 'Data Breach', security: 'Security', compliance_violation: 'Compliance', operational: 'Operational', other: 'Other' };
-const SEV_CLR: Record<string, string> = { critical: 'bg-destructive/10 text-destructive', high: 'bg-orange-500/10 text-orange-600', medium: 'bg-amber-500/10 text-amber-600', low: 'bg-muted text-muted-foreground' };
 const STATUS_LABEL: Record<string, string> = { open: 'Open', investigating: 'Investigating', resolved: 'Resolved', closed: 'Closed' };
 
 const FILTER_TABS = [
@@ -38,7 +37,7 @@ function IncidentDialog({ incident, trigger, onDone }: { incident?: Incident; tr
   const save = async () => {
     const data = { ...f, resolvedDate: (f.status === 'resolved' || f.status === 'closed') ? Date.now() : undefined, linkedPolicies: incident?.linkedPolicies ?? [], linkedAssessments: incident?.linkedAssessments ?? [], linkedTasks: incident?.linkedTasks ?? [] };
     if (incident) { await db.incidents.update(incident.id, data); toast.success('Incident updated'); }
-    else { await db.incidents.add({ id: crypto.randomUUID(), workspaceId: 'ws-default', reportedDate: Date.now(), createdAt: Date.now(), linkedPolicies: [], linkedAssessments: [], linkedTasks: [], ...data }); toast.success('Incident logged'); }
+    else { await db.incidents.add({ id: crypto.randomUUID(), workspaceId: 'ws-default', reportedDate: Date.now(), createdAt: Date.now(), ...data }); toast.success('Incident logged'); }
     setOpen(false); onDone();
   };
 

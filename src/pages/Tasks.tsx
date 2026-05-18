@@ -84,7 +84,6 @@ function DeleteDialog({ task, onDone }: { task: Task; onDone: () => void }) {
 }
 
 /* ── Priority styling ── */
-const PRI_CLR: Record<string, string> = { high: 'bg-destructive/10 text-destructive border-destructive/20', medium: 'bg-amber-500/10 text-amber-700 border-amber-500/20', low: 'bg-muted text-muted-foreground border-border' };
 const PRI_DOT: Record<string, string> = { high: 'bg-red-500', medium: 'bg-amber-500', low: 'bg-gray-400' };
 
 export default function Tasks() {
