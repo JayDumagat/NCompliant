@@ -256,8 +256,8 @@ export default function AssessmentDetail() {
                     open={compareOpen}
                     onOpenChange={(open) => {
                       if (open) {
-                        setLeftVersion(String(Math.max(1, snapshots.length - 1)));
-                        setRightVersion(String(snapshots.length));
+                        setLeftVersion(String(snapshots[Math.max(0, snapshots.length - 2)]?.version ?? 1));
+                        setRightVersion(String(snapshots[snapshots.length - 1]?.version ?? 1));
                       }
                       setCompareOpen(open);
                     }}
