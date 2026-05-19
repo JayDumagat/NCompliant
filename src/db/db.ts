@@ -182,6 +182,54 @@ export interface Incident {
   createdAt: number;
 }
 
+export interface ThirdPartyVendor {
+  id: string;
+  workspaceId: string;
+  name: string;
+  serviceCategory: string;
+  contactName: string;
+  contactEmail: string;
+  status: 'active' | 'under_review' | 'offboarded';
+  riskTier: 'low' | 'medium' | 'high' | 'critical';
+  dataAccess: 'none' | 'limited' | 'full';
+  notes: string;
+  tags: string[];
+  createdAt: number;
+  lastAssessmentAt?: number;
+}
+
+export interface VendorAssessment {
+  id: string;
+  workspaceId: string;
+  vendorId: string;
+  title: string;
+  assessmentType: 'security' | 'privacy' | 'compliance' | 'operational';
+  status: 'not_started' | 'in_progress' | 'completed';
+  riskLevel: 'low' | 'medium' | 'high' | 'critical' | 'unassessed';
+  score: number;
+  summary: string;
+  recommendations: string;
+  assessedAt?: number;
+  nextReviewDate?: number;
+  createdAt: number;
+}
+
+export interface DataAsset {
+  id: string;
+  workspaceId: string;
+  name: string;
+  description: string;
+  dataType: string;
+  classification: 'public' | 'internal' | 'confidential' | 'restricted';
+  group: string;
+  tags: string[];
+  owner: string;
+  retentionPolicy: string;
+  status: 'active' | 'archived';
+  createdAt: number;
+  lastReviewedAt?: number;
+}
+
 export interface ReportSnapshot {
   totalPolicies: number;
   activePolicies: number;
@@ -244,6 +292,9 @@ const db = new Dexie('NCompliantDB') as Dexie & {
   checklists: EntityTable<Checklist, 'id'>;
   trainingRecords: EntityTable<TrainingRecord, 'id'>;
   incidents: EntityTable<Incident, 'id'>;
+  vendors: EntityTable<ThirdPartyVendor, 'id'>;
+  vendorAssessments: EntityTable<VendorAssessment, 'id'>;
+  dataAssets: EntityTable<DataAsset, 'id'>;
   reports: EntityTable<Report, 'id'>;
 };
 
@@ -295,6 +346,23 @@ db.version(5).stores({
   checklists: 'id, workspaceId, type, status, createdAt',
   trainingRecords: 'id, workspaceId, status, category, expirationDate, createdAt',
   incidents: 'id, workspaceId, type, severity, status, reportedDate, createdAt',
+  reports: 'id, workspaceId, type, template, period, status, generatedAt',
+});
+
+db.version(6).stores({
+  workspaces: 'id, name',
+  policies: 'id, workspaceId, status, category, lastUpdated',
+  tasks: 'id, workspaceId, policyId, assessmentId, status, priority, dueDate',
+  updates: 'id, agency, severity, date',
+  pias: 'id, workspaceId, status, riskLevel, createdAt',
+  assessments: 'id, workspaceId, type, status, riskLevel, createdAt',
+  taskTemplates: 'id, workspaceId, category, createdAt',
+  checklists: 'id, workspaceId, type, status, createdAt',
+  trainingRecords: 'id, workspaceId, status, category, expirationDate, createdAt',
+  incidents: 'id, workspaceId, type, severity, status, reportedDate, createdAt',
+  vendors: 'id, workspaceId, status, riskTier, serviceCategory, createdAt, lastAssessmentAt',
+  vendorAssessments: 'id, workspaceId, vendorId, assessmentType, status, riskLevel, assessedAt, nextReviewDate, createdAt',
+  dataAssets: 'id, workspaceId, classification, group, status, createdAt, lastReviewedAt',
   reports: 'id, workspaceId, type, template, period, status, generatedAt',
 });
 
@@ -516,6 +584,146 @@ export async function seedDatabase() {
     { id: 'inc-001', workspaceId: ws, title: 'Unauthorized Access Attempt', description: 'Multiple failed login attempts detected from unknown IP.', type: 'security', severity: 'high', status: 'resolved', reportedBy: 'IT Security', reportedDate: now - 15 * d, resolvedDate: now - 12 * d, linkedPolicies: ['pol-002'], linkedAssessments: [], linkedTasks: [], findings: 'Brute force attempt from external IP. No data compromised.', mitigationSteps: 'IP blocked. MFA enforcement expanded. Rate limiting implemented.', isRecurring: false, createdAt: now - 15 * d },
     { id: 'inc-002', workspaceId: ws, title: 'Customer Data Export Without Approval', description: 'Employee exported customer list without proper authorization.', type: 'compliance_violation', severity: 'medium', status: 'investigating', reportedBy: 'Compliance Team', reportedDate: now - 3 * d, linkedPolicies: ['pol-001'], linkedAssessments: ['asm-001'], linkedTasks: [], findings: '', mitigationSteps: '', isRecurring: false, createdAt: now - 3 * d },
     { id: 'inc-003', workspaceId: ws, title: 'Phishing Email Reported', description: 'Staff member reported suspicious email targeting credentials.', type: 'security', severity: 'low', status: 'closed', reportedBy: 'Mark Santos', reportedDate: now - 25 * d, resolvedDate: now - 24 * d, linkedPolicies: ['pol-002'], linkedAssessments: [], linkedTasks: [], findings: 'Phishing email blocked. No credentials compromised.', mitigationSteps: 'Security awareness reminder sent to all staff.', isRecurring: true, createdAt: now - 25 * d },
+  ]);
+
+  await db.vendors.bulkAdd([
+    {
+      id: 'ven-001',
+      workspaceId: ws,
+      name: 'CloudServe PH',
+      serviceCategory: 'Cloud Hosting',
+      contactName: 'Rica Mendoza',
+      contactEmail: 'rica@cloudserve.ph',
+      status: 'active',
+      riskTier: 'high',
+      dataAccess: 'full',
+      notes: 'Hosts production systems and customer databases.',
+      tags: ['critical-vendor', 'cloud', 'infrastructure'],
+      createdAt: now - 120 * d,
+      lastAssessmentAt: now - 20 * d,
+    },
+    {
+      id: 'ven-002',
+      workspaceId: ws,
+      name: 'PayLink Solutions',
+      serviceCategory: 'Payment Processing',
+      contactName: 'Leo Santos',
+      contactEmail: 'security@paylink.io',
+      status: 'under_review',
+      riskTier: 'critical',
+      dataAccess: 'full',
+      notes: 'Processes cardholder and billing data.',
+      tags: ['payments', 'pci', 'critical-vendor'],
+      createdAt: now - 75 * d,
+      lastAssessmentAt: now - 40 * d,
+    },
+    {
+      id: 'ven-003',
+      workspaceId: ws,
+      name: 'PeopleOps Tools',
+      serviceCategory: 'HR Platform',
+      contactName: 'Mara Lim',
+      contactEmail: 'support@peopleops.tools',
+      status: 'active',
+      riskTier: 'medium',
+      dataAccess: 'limited',
+      notes: 'Used for employee onboarding and records.',
+      tags: ['hr', 'employee-data'],
+      createdAt: now - 45 * d,
+      lastAssessmentAt: now - 10 * d,
+    },
+  ]);
+
+  await db.vendorAssessments.bulkAdd([
+    {
+      id: 'vasm-001',
+      workspaceId: ws,
+      vendorId: 'ven-001',
+      title: 'Annual Cloud Security Assessment',
+      assessmentType: 'security',
+      status: 'completed',
+      riskLevel: 'medium',
+      score: 78,
+      summary: 'Security controls are generally effective with minor IAM gaps.',
+      recommendations: 'Tighten privileged access controls and rotate credentials quarterly.',
+      assessedAt: now - 20 * d,
+      nextReviewDate: now + 345 * d,
+      createdAt: now - 30 * d,
+    },
+    {
+      id: 'vasm-002',
+      workspaceId: ws,
+      vendorId: 'ven-002',
+      title: 'Payment Processor Compliance Review',
+      assessmentType: 'compliance',
+      status: 'in_progress',
+      riskLevel: 'high',
+      score: 52,
+      summary: 'SOC reports provided, but remediation evidence is incomplete.',
+      recommendations: 'Collect updated PCI attestation and close open penetration findings.',
+      createdAt: now - 15 * d,
+    },
+    {
+      id: 'vasm-003',
+      workspaceId: ws,
+      vendorId: 'ven-003',
+      title: 'HR Vendor Privacy Impact Review',
+      assessmentType: 'privacy',
+      status: 'not_started',
+      riskLevel: 'unassessed',
+      score: 0,
+      summary: '',
+      recommendations: '',
+      createdAt: now - 5 * d,
+    },
+  ]);
+
+  await db.dataAssets.bulkAdd([
+    {
+      id: 'data-001',
+      workspaceId: ws,
+      name: 'Customer Master Profile',
+      description: 'Core customer identity and contact profile records.',
+      dataType: 'Personal Data',
+      classification: 'confidential',
+      group: 'Customer Records',
+      tags: ['pii', 'customer', 'core-system'],
+      owner: 'Customer Operations',
+      retentionPolicy: 'Retain for 5 years after account closure',
+      status: 'active',
+      createdAt: now - 180 * d,
+      lastReviewedAt: now - 30 * d,
+    },
+    {
+      id: 'data-002',
+      workspaceId: ws,
+      name: 'Employee HR Files',
+      description: 'Employee lifecycle and compensation documents.',
+      dataType: 'HR Data',
+      classification: 'restricted',
+      group: 'Employee Records',
+      tags: ['employee', 'sensitive', 'hr'],
+      owner: 'Human Resources',
+      retentionPolicy: 'Retain for 10 years post-employment',
+      status: 'active',
+      createdAt: now - 220 * d,
+      lastReviewedAt: now - 45 * d,
+    },
+    {
+      id: 'data-003',
+      workspaceId: ws,
+      name: 'Website Analytics Events',
+      description: 'Anonymized website behavior and campaign attribution events.',
+      dataType: 'Behavioral Data',
+      classification: 'internal',
+      group: 'Marketing Analytics',
+      tags: ['analytics', 'web', 'events'],
+      owner: 'Marketing',
+      retentionPolicy: 'Retain for 24 months',
+      status: 'active',
+      createdAt: now - 90 * d,
+      lastReviewedAt: now - 12 * d,
+    },
   ]);
 }
 
