@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, FileText, CheckSquare, ClipboardCheck, Settings, PanelLeftClose, ListChecks, LayoutTemplate, GraduationCap, AlertTriangle, BarChart3, FileBarChart, Bell, MoreHorizontal, Zap } from 'lucide-react';
+import { LayoutDashboard, FileText, CheckSquare, ClipboardCheck, Settings, PanelLeftClose, ListChecks, LayoutTemplate, GraduationCap, AlertTriangle, BarChart3, FileBarChart, Bell, MoreHorizontal, Zap, Building2, Database } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useUIStore } from '@/store/uiStore';
 import { Button } from '@/components/ui/button';
@@ -18,6 +18,8 @@ const NAV_ITEMS = [
   { icon: BarChart3, label: 'Analytics', to: '/analytics' },
   { icon: FileBarChart, label: 'Reports', to: '/reports' },
   { icon: GraduationCap, label: 'Training', to: '/training' },
+  { icon: Building2, label: 'Vendors', to: '/vendors' },
+  { icon: Database, label: 'Data', to: '/data-management' },
   { icon: Bell, label: 'Updates', to: '/updates' },
 ];
 
@@ -94,6 +96,8 @@ const MORE_ITEMS = [
   { icon: BarChart3, label: 'Analytics', to: '/analytics' },
   { icon: FileBarChart, label: 'Reports', to: '/reports' },
   { icon: GraduationCap, label: 'Training', to: '/training' },
+  { icon: Building2, label: 'Vendors', to: '/vendors' },
+  { icon: Database, label: 'Data', to: '/data-management' },
   { icon: Bell, label: 'Updates', to: '/updates' },
   { icon: Settings, label: 'Settings', to: '/settings' },
 ];
@@ -169,4 +173,3 @@ export function BottomTabBar() {
     </>
   );
 }
-

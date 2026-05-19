@@ -14,6 +14,8 @@ import Training from '@/pages/Training';
 import Incidents from '@/pages/Incidents';
 import Reports from '@/pages/Reports';
 import Analytics from '@/pages/Analytics';
+import Vendors from '@/pages/Vendors';
+import DataManagement from '@/pages/DataManagement';
 
 function App() {
   return (
@@ -34,6 +36,8 @@ function App() {
           <Route path="/incidents" element={<Incidents />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="/analytics" element={<Analytics />} />
+          <Route path="/vendors" element={<Vendors />} />
+          <Route path="/data-management" element={<DataManagement />} />
         </Route>
       </Routes>
     </BrowserRouter>
