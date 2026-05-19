@@ -360,9 +360,9 @@ db.version(6).stores({
   checklists: 'id, workspaceId, type, status, createdAt',
   trainingRecords: 'id, workspaceId, status, category, expirationDate, createdAt',
   incidents: 'id, workspaceId, type, severity, status, reportedDate, createdAt',
-  vendors: 'id, workspaceId, status, riskTier, serviceCategory, *tags, createdAt, lastAssessmentAt',
+  vendors: 'id, workspaceId, status, riskTier, serviceCategory, createdAt, lastAssessmentAt',
   vendorAssessments: 'id, workspaceId, vendorId, assessmentType, status, riskLevel, assessedAt, nextReviewDate, createdAt',
-  dataAssets: 'id, workspaceId, classification, group, status, *tags, createdAt, lastReviewedAt',
+  dataAssets: 'id, workspaceId, classification, group, status, createdAt, lastReviewedAt',
   reports: 'id, workspaceId, type, template, period, status, generatedAt',
 });
 
