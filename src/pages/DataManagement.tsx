@@ -22,7 +22,7 @@ const CLASS_COLORS: Record<DataAsset['classification'], string> = {
 
 function DataAssetDialog({ trigger, asset }: { trigger: React.ReactNode; asset?: DataAsset }) {
   const [open, setOpen] = useState(false);
-  const [f, setF] = useState({
+  const [form, setForm] = useState({
     name: '',
     description: '',
     dataType: '',
@@ -37,7 +37,7 @@ function DataAssetDialog({ trigger, asset }: { trigger: React.ReactNode; asset?:
 
   const onOpenChange = (next: boolean) => {
     if (next && asset) {
-      setF({
+      setForm({
         name: asset.name,
         description: asset.description,
         dataType: asset.dataType,
@@ -51,7 +51,7 @@ function DataAssetDialog({ trigger, asset }: { trigger: React.ReactNode; asset?:
       });
     }
     if (next && !asset) {
-      setF({
+      setForm({
         name: '',
         description: '',
         dataType: '',
@@ -69,16 +69,16 @@ function DataAssetDialog({ trigger, asset }: { trigger: React.ReactNode; asset?:
 
   const save = async () => {
     const payload = {
-      name: f.name,
-      description: f.description,
-      dataType: f.dataType,
-      classification: f.classification,
-      group: f.group,
-      tags: f.tags.split(',').map(s => s.trim()).filter(Boolean),
-      owner: f.owner,
-      retentionPolicy: f.retentionPolicy,
-      status: f.status,
-      lastReviewedAt: f.lastReviewedAt ? new Date(f.lastReviewedAt).getTime() : undefined,
+      name: form.name,
+      description: form.description,
+      dataType: form.dataType,
+      classification: form.classification,
+      group: form.group,
+      tags: form.tags.split(',').map(s => s.trim()).filter(Boolean),
+      owner: form.owner,
+      retentionPolicy: form.retentionPolicy,
+      status: form.status,
+      lastReviewedAt: form.lastReviewedAt ? new Date(form.lastReviewedAt).getTime() : undefined,
     };
     if (asset) {
       await db.dataAssets.update(asset.id, payload);
@@ -102,25 +102,25 @@ function DataAssetDialog({ trigger, asset }: { trigger: React.ReactNode; asset?:
         <DialogHeader><DialogTitle>{asset ? 'Edit Data Record' : 'Add Data Record'}</DialogTitle></DialogHeader>
         <div className="space-y-4 py-2">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="space-y-2"><Label>Name</Label><Input value={f.name} onChange={e => setF({ ...f, name: e.target.value })} placeholder="Data asset name" /></div>
-            <div className="space-y-2"><Label>Data Type</Label><Input value={f.dataType} onChange={e => setF({ ...f, dataType: e.target.value })} placeholder="Personal Data, Financial Data..." /></div>
+            <div className="space-y-2"><Label>Name</Label><Input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Data asset name" /></div>
+            <div className="space-y-2"><Label>Data Type</Label><Input value={form.dataType} onChange={e => setForm({ ...form, dataType: e.target.value })} placeholder="Personal Data, Financial Data..." /></div>
           </div>
-          <div className="space-y-2"><Label>Description</Label><Textarea className="min-h-[80px]" value={f.description} onChange={e => setF({ ...f, description: e.target.value })} /></div>
+          <div className="space-y-2"><Label>Description</Label><Textarea className="min-h-[80px]" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} /></div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="space-y-2"><Label>Classification</Label><Select value={f.classification} onValueChange={v => setF({ ...f, classification: v as DataAsset['classification'] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="public">Public</SelectItem><SelectItem value="internal">Internal</SelectItem><SelectItem value="confidential">Confidential</SelectItem><SelectItem value="restricted">Restricted</SelectItem></SelectContent></Select></div>
-            <div className="space-y-2"><Label>Group</Label><Input value={f.group} onChange={e => setF({ ...f, group: e.target.value })} placeholder="Customer Records" /></div>
-            <div className="space-y-2"><Label>Status</Label><Select value={f.status} onValueChange={v => setF({ ...f, status: v as DataAsset['status'] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="active">Active</SelectItem><SelectItem value="archived">Archived</SelectItem></SelectContent></Select></div>
+            <div className="space-y-2"><Label>Classification</Label><Select value={form.classification} onValueChange={v => setForm({ ...form, classification: v as DataAsset['classification'] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="public">Public</SelectItem><SelectItem value="internal">Internal</SelectItem><SelectItem value="confidential">Confidential</SelectItem><SelectItem value="restricted">Restricted</SelectItem></SelectContent></Select></div>
+            <div className="space-y-2"><Label>Group</Label><Input value={form.group} onChange={e => setForm({ ...form, group: e.target.value })} placeholder="Customer Records" /></div>
+            <div className="space-y-2"><Label>Status</Label><Select value={form.status} onValueChange={v => setForm({ ...form, status: v as DataAsset['status'] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="active">Active</SelectItem><SelectItem value="archived">Archived</SelectItem></SelectContent></Select></div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="space-y-2"><Label>Owner</Label><Input value={f.owner} onChange={e => setF({ ...f, owner: e.target.value })} placeholder="Business owner/team" /></div>
-            <div className="space-y-2"><Label>Last Reviewed</Label><Input type="date" value={f.lastReviewedAt} onChange={e => setF({ ...f, lastReviewedAt: e.target.value })} /></div>
+            <div className="space-y-2"><Label>Owner</Label><Input value={form.owner} onChange={e => setForm({ ...form, owner: e.target.value })} placeholder="Business owner/team" /></div>
+            <div className="space-y-2"><Label>Last Reviewed</Label><Input type="date" value={form.lastReviewedAt} onChange={e => setForm({ ...form, lastReviewedAt: e.target.value })} /></div>
           </div>
-          <div className="space-y-2"><Label>Retention Policy</Label><Input value={f.retentionPolicy} onChange={e => setF({ ...f, retentionPolicy: e.target.value })} placeholder="Retention and disposal rule" /></div>
-          <div className="space-y-2"><Label>Tags (comma separated)</Label><Input value={f.tags} onChange={e => setF({ ...f, tags: e.target.value })} placeholder="pii, finance, customer" /></div>
+          <div className="space-y-2"><Label>Retention Policy</Label><Input value={form.retentionPolicy} onChange={e => setForm({ ...form, retentionPolicy: e.target.value })} placeholder="Retention and disposal rule" /></div>
+          <div className="space-y-2"><Label>Tags (comma separated)</Label><Input value={form.tags} onChange={e => setForm({ ...form, tags: e.target.value })} placeholder="pii, finance, customer" /></div>
         </div>
         <div className="flex justify-end gap-2 pt-2">
           <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button onClick={save} disabled={!f.name || !f.dataType || !f.group}>Save</Button>
+          <Button onClick={save} disabled={!form.name || !form.dataType || !form.group}>Save</Button>
         </div>
       </DialogContent>
     </Dialog>
@@ -139,12 +139,14 @@ export default function DataManagement() {
   }, [assets]);
 
   const filtered = useMemo(() => {
-    return (assets ?? []).filter(a => {
-      const matchesQ = `${a.name} ${a.dataType} ${a.owner} ${a.tags.join(' ')}`.toLowerCase().includes(q.toLowerCase());
-      const matchesClass = classification === 'all' || a.classification === classification;
-      const matchesGroup = groupFilter === 'all' || a.group === groupFilter;
-      return matchesQ && matchesClass && matchesGroup;
-    });
+    return (assets ?? [])
+      .filter(a => {
+        const matchesQ = `${a.name} ${a.dataType} ${a.owner} ${a.tags.join(' ')}`.toLowerCase().includes(q.toLowerCase());
+        const matchesClass = classification === 'all' || a.classification === classification;
+        const matchesGroup = groupFilter === 'all' || a.group === groupFilter;
+        return matchesQ && matchesClass && matchesGroup;
+      })
+      .sort((a, b) => b.createdAt - a.createdAt);
   }, [assets, q, classification, groupFilter]);
 
   const stats = useMemo(() => {
@@ -203,7 +205,6 @@ export default function DataManagement() {
           <Card><CardContent className="py-12 text-center text-muted-foreground">No data records found.</CardContent></Card>
         ) : (
           filtered
-            .sort((a, b) => b.createdAt - a.createdAt)
             .map(asset => (
               <Card key={asset.id}>
                 <CardContent className="p-5 space-y-3">

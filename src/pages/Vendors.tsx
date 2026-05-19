@@ -22,7 +22,7 @@ const RISK_CLASS: Record<ThirdPartyVendor['riskTier'], string> = {
 
 function VendorDialog({ trigger, vendor }: { trigger: React.ReactNode; vendor?: ThirdPartyVendor }) {
   const [open, setOpen] = useState(false);
-  const [f, setF] = useState({
+  const [form, setForm] = useState({
     name: '',
     serviceCategory: '',
     contactName: '',
@@ -36,7 +36,7 @@ function VendorDialog({ trigger, vendor }: { trigger: React.ReactNode; vendor?: 
 
   const onOpenChange = (next: boolean) => {
     if (next && vendor) {
-      setF({
+      setForm({
         name: vendor.name,
         serviceCategory: vendor.serviceCategory,
         contactName: vendor.contactName,
@@ -49,7 +49,7 @@ function VendorDialog({ trigger, vendor }: { trigger: React.ReactNode; vendor?: 
       });
     }
     if (next && !vendor) {
-      setF({
+      setForm({
         name: '',
         serviceCategory: '',
         contactName: '',
@@ -66,15 +66,15 @@ function VendorDialog({ trigger, vendor }: { trigger: React.ReactNode; vendor?: 
 
   const save = async () => {
     const payload = {
-      name: f.name,
-      serviceCategory: f.serviceCategory,
-      contactName: f.contactName,
-      contactEmail: f.contactEmail,
-      status: f.status,
-      riskTier: f.riskTier,
-      dataAccess: f.dataAccess,
-      tags: f.tags.split(',').map(s => s.trim()).filter(Boolean),
-      notes: f.notes,
+      name: form.name,
+      serviceCategory: form.serviceCategory,
+      contactName: form.contactName,
+      contactEmail: form.contactEmail,
+      status: form.status,
+      riskTier: form.riskTier,
+      dataAccess: form.dataAccess,
+      tags: form.tags.split(',').map(s => s.trim()).filter(Boolean),
+      notes: form.notes,
     };
 
     if (vendor) {
@@ -99,24 +99,24 @@ function VendorDialog({ trigger, vendor }: { trigger: React.ReactNode; vendor?: 
         <DialogHeader><DialogTitle>{vendor ? 'Edit Vendor' : 'Add Third-Party Vendor'}</DialogTitle></DialogHeader>
         <div className="space-y-4 py-2">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="space-y-2"><Label>Vendor Name</Label><Input value={f.name} onChange={e => setF({ ...f, name: e.target.value })} placeholder="Vendor name" /></div>
-            <div className="space-y-2"><Label>Service Category</Label><Input value={f.serviceCategory} onChange={e => setF({ ...f, serviceCategory: e.target.value })} placeholder="Cloud, Payroll, Legal..." /></div>
+            <div className="space-y-2"><Label>Vendor Name</Label><Input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Vendor name" /></div>
+            <div className="space-y-2"><Label>Service Category</Label><Input value={form.serviceCategory} onChange={e => setForm({ ...form, serviceCategory: e.target.value })} placeholder="Cloud, Payroll, Legal..." /></div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="space-y-2"><Label>Contact Name</Label><Input value={f.contactName} onChange={e => setF({ ...f, contactName: e.target.value })} placeholder="Primary contact" /></div>
-            <div className="space-y-2"><Label>Contact Email</Label><Input value={f.contactEmail} onChange={e => setF({ ...f, contactEmail: e.target.value })} placeholder="name@vendor.com" /></div>
+            <div className="space-y-2"><Label>Contact Name</Label><Input value={form.contactName} onChange={e => setForm({ ...form, contactName: e.target.value })} placeholder="Primary contact" /></div>
+            <div className="space-y-2"><Label>Contact Email</Label><Input value={form.contactEmail} onChange={e => setForm({ ...form, contactEmail: e.target.value })} placeholder="name@vendor.com" /></div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="space-y-2"><Label>Status</Label><Select value={f.status} onValueChange={v => setF({ ...f, status: v as ThirdPartyVendor['status'] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="active">Active</SelectItem><SelectItem value="under_review">Under Review</SelectItem><SelectItem value="offboarded">Offboarded</SelectItem></SelectContent></Select></div>
-            <div className="space-y-2"><Label>Risk Tier</Label><Select value={f.riskTier} onValueChange={v => setF({ ...f, riskTier: v as ThirdPartyVendor['riskTier'] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="low">Low</SelectItem><SelectItem value="medium">Medium</SelectItem><SelectItem value="high">High</SelectItem><SelectItem value="critical">Critical</SelectItem></SelectContent></Select></div>
-            <div className="space-y-2"><Label>Data Access</Label><Select value={f.dataAccess} onValueChange={v => setF({ ...f, dataAccess: v as ThirdPartyVendor['dataAccess'] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="none">None</SelectItem><SelectItem value="limited">Limited</SelectItem><SelectItem value="full">Full</SelectItem></SelectContent></Select></div>
+            <div className="space-y-2"><Label>Status</Label><Select value={form.status} onValueChange={v => setForm({ ...form, status: v as ThirdPartyVendor['status'] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="active">Active</SelectItem><SelectItem value="under_review">Under Review</SelectItem><SelectItem value="offboarded">Offboarded</SelectItem></SelectContent></Select></div>
+            <div className="space-y-2"><Label>Risk Tier</Label><Select value={form.riskTier} onValueChange={v => setForm({ ...form, riskTier: v as ThirdPartyVendor['riskTier'] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="low">Low</SelectItem><SelectItem value="medium">Medium</SelectItem><SelectItem value="high">High</SelectItem><SelectItem value="critical">Critical</SelectItem></SelectContent></Select></div>
+            <div className="space-y-2"><Label>Data Access</Label><Select value={form.dataAccess} onValueChange={v => setForm({ ...form, dataAccess: v as ThirdPartyVendor['dataAccess'] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="none">None</SelectItem><SelectItem value="limited">Limited</SelectItem><SelectItem value="full">Full</SelectItem></SelectContent></Select></div>
           </div>
-          <div className="space-y-2"><Label>Tags (comma separated)</Label><Input value={f.tags} onChange={e => setF({ ...f, tags: e.target.value })} placeholder="critical-vendor, finance, pii" /></div>
-          <div className="space-y-2"><Label>Notes</Label><Textarea className="min-h-[80px]" value={f.notes} onChange={e => setF({ ...f, notes: e.target.value })} /></div>
+          <div className="space-y-2"><Label>Tags (comma separated)</Label><Input value={form.tags} onChange={e => setForm({ ...form, tags: e.target.value })} placeholder="critical-vendor, finance, pii" /></div>
+          <div className="space-y-2"><Label>Notes</Label><Textarea className="min-h-[80px]" value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} /></div>
         </div>
         <div className="flex justify-end gap-2 pt-2">
           <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button onClick={save} disabled={!f.name || !f.serviceCategory}>Save</Button>
+          <Button onClick={save} disabled={!form.name || !form.serviceCategory}>Save</Button>
         </div>
       </DialogContent>
     </Dialog>
@@ -125,7 +125,7 @@ function VendorDialog({ trigger, vendor }: { trigger: React.ReactNode; vendor?: 
 
 function AssessmentDialog({ trigger, vendor }: { trigger: React.ReactNode; vendor: ThirdPartyVendor }) {
   const [open, setOpen] = useState(false);
-  const [f, setF] = useState({
+  const [form, setForm] = useState({
     title: '',
     assessmentType: 'security' as VendorAssessment['assessmentType'],
     status: 'not_started' as VendorAssessment['status'],
@@ -142,21 +142,21 @@ function AssessmentDialog({ trigger, vendor }: { trigger: React.ReactNode; vendo
       id: crypto.randomUUID(),
       workspaceId: 'ws-default',
       vendorId: vendor.id,
-      title: f.title,
-      assessmentType: f.assessmentType,
-      status: f.status,
-      riskLevel: f.riskLevel,
-      score: Number(f.score) || 0,
-      assessedAt: f.assessedAt ? new Date(f.assessedAt).getTime() : undefined,
-      nextReviewDate: f.nextReviewDate ? new Date(f.nextReviewDate).getTime() : undefined,
-      summary: f.summary,
-      recommendations: f.recommendations,
+      title: form.title,
+      assessmentType: form.assessmentType,
+      status: form.status,
+      riskLevel: form.riskLevel,
+      score: Number(form.score) || 0,
+      assessedAt: form.assessedAt ? new Date(form.assessedAt).getTime() : undefined,
+      nextReviewDate: form.nextReviewDate ? new Date(form.nextReviewDate).getTime() : undefined,
+      summary: form.summary,
+      recommendations: form.recommendations,
       createdAt: Date.now(),
     });
     await db.vendors.update(vendor.id, { lastAssessmentAt: Date.now() });
     toast.success('Vendor assessment recorded');
     setOpen(false);
-    setF({ title: '', assessmentType: 'security', status: 'not_started', riskLevel: 'unassessed', score: '', assessedAt: '', nextReviewDate: '', summary: '', recommendations: '' });
+    setForm({ title: '', assessmentType: 'security', status: 'not_started', riskLevel: 'unassessed', score: '', assessedAt: '', nextReviewDate: '', summary: '', recommendations: '' });
   };
 
   return (
@@ -165,23 +165,23 @@ function AssessmentDialog({ trigger, vendor }: { trigger: React.ReactNode; vendo
       <DialogContent className="sm:max-w-xl max-h-[85vh] overflow-y-auto">
         <DialogHeader><DialogTitle>New Vendor Assessment · {vendor.name}</DialogTitle></DialogHeader>
         <div className="space-y-4 py-2">
-          <div className="space-y-2"><Label>Assessment Title</Label><Input value={f.title} onChange={e => setF({ ...f, title: e.target.value })} placeholder="Quarterly security review" /></div>
+          <div className="space-y-2"><Label>Assessment Title</Label><Input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} placeholder="Quarterly security review" /></div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="space-y-2"><Label>Type</Label><Select value={f.assessmentType} onValueChange={v => setF({ ...f, assessmentType: v as VendorAssessment['assessmentType'] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="security">Security</SelectItem><SelectItem value="privacy">Privacy</SelectItem><SelectItem value="compliance">Compliance</SelectItem><SelectItem value="operational">Operational</SelectItem></SelectContent></Select></div>
-            <div className="space-y-2"><Label>Status</Label><Select value={f.status} onValueChange={v => setF({ ...f, status: v as VendorAssessment['status'] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="not_started">Not Started</SelectItem><SelectItem value="in_progress">In Progress</SelectItem><SelectItem value="completed">Completed</SelectItem></SelectContent></Select></div>
-            <div className="space-y-2"><Label>Risk</Label><Select value={f.riskLevel} onValueChange={v => setF({ ...f, riskLevel: v as VendorAssessment['riskLevel'] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="unassessed">Unassessed</SelectItem><SelectItem value="low">Low</SelectItem><SelectItem value="medium">Medium</SelectItem><SelectItem value="high">High</SelectItem><SelectItem value="critical">Critical</SelectItem></SelectContent></Select></div>
+            <div className="space-y-2"><Label>Type</Label><Select value={form.assessmentType} onValueChange={v => setForm({ ...form, assessmentType: v as VendorAssessment['assessmentType'] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="security">Security</SelectItem><SelectItem value="privacy">Privacy</SelectItem><SelectItem value="compliance">Compliance</SelectItem><SelectItem value="operational">Operational</SelectItem></SelectContent></Select></div>
+            <div className="space-y-2"><Label>Status</Label><Select value={form.status} onValueChange={v => setForm({ ...form, status: v as VendorAssessment['status'] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="not_started">Not Started</SelectItem><SelectItem value="in_progress">In Progress</SelectItem><SelectItem value="completed">Completed</SelectItem></SelectContent></Select></div>
+            <div className="space-y-2"><Label>Risk</Label><Select value={form.riskLevel} onValueChange={v => setForm({ ...form, riskLevel: v as VendorAssessment['riskLevel'] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="unassessed">Unassessed</SelectItem><SelectItem value="low">Low</SelectItem><SelectItem value="medium">Medium</SelectItem><SelectItem value="high">High</SelectItem><SelectItem value="critical">Critical</SelectItem></SelectContent></Select></div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="space-y-2"><Label>Score</Label><Input type="number" min="0" max="100" value={f.score} onChange={e => setF({ ...f, score: e.target.value })} placeholder="0 - 100" /></div>
-            <div className="space-y-2"><Label>Assessed Date</Label><Input type="date" value={f.assessedAt} onChange={e => setF({ ...f, assessedAt: e.target.value })} /></div>
-            <div className="space-y-2"><Label>Next Review</Label><Input type="date" value={f.nextReviewDate} onChange={e => setF({ ...f, nextReviewDate: e.target.value })} /></div>
+            <div className="space-y-2"><Label>Score</Label><Input type="number" min="0" max="100" value={form.score} onChange={e => setForm({ ...form, score: e.target.value })} placeholder="0 - 100" /></div>
+            <div className="space-y-2"><Label>Assessed Date</Label><Input type="date" value={form.assessedAt} onChange={e => setForm({ ...form, assessedAt: e.target.value })} /></div>
+            <div className="space-y-2"><Label>Next Review</Label><Input type="date" value={form.nextReviewDate} onChange={e => setForm({ ...form, nextReviewDate: e.target.value })} /></div>
           </div>
-          <div className="space-y-2"><Label>Summary</Label><Textarea className="min-h-[70px]" value={f.summary} onChange={e => setF({ ...f, summary: e.target.value })} /></div>
-          <div className="space-y-2"><Label>Recommendations</Label><Textarea className="min-h-[70px]" value={f.recommendations} onChange={e => setF({ ...f, recommendations: e.target.value })} /></div>
+          <div className="space-y-2"><Label>Summary</Label><Textarea className="min-h-[70px]" value={form.summary} onChange={e => setForm({ ...form, summary: e.target.value })} /></div>
+          <div className="space-y-2"><Label>Recommendations</Label><Textarea className="min-h-[70px]" value={form.recommendations} onChange={e => setForm({ ...form, recommendations: e.target.value })} /></div>
         </div>
         <div className="flex justify-end gap-2 pt-2">
           <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button onClick={save} disabled={!f.title}>Record Assessment</Button>
+          <Button onClick={save} disabled={!form.title}>Record Assessment</Button>
         </div>
       </DialogContent>
     </Dialog>
@@ -196,11 +196,13 @@ export default function Vendors() {
 
   const filteredVendors = useMemo(() => {
     const source = vendors ?? [];
-    return source.filter(v => {
-      const matchesQuery = `${v.name} ${v.serviceCategory} ${v.contactName}`.toLowerCase().includes(q.toLowerCase());
-      const matchesRisk = riskFilter === 'all' || v.riskTier === riskFilter;
-      return matchesQuery && matchesRisk;
-    });
+    return source
+      .filter(v => {
+        const matchesQuery = `${v.name} ${v.serviceCategory} ${v.contactName}`.toLowerCase().includes(q.toLowerCase());
+        const matchesRisk = riskFilter === 'all' || v.riskTier === riskFilter;
+        return matchesQuery && matchesRisk;
+      })
+      .sort((a, b) => b.createdAt - a.createdAt);
   }, [vendors, q, riskFilter]);
 
   const summary = useMemo(() => {
@@ -263,7 +265,6 @@ export default function Vendors() {
           <Card><CardContent className="py-12 text-center text-muted-foreground">No vendors found.</CardContent></Card>
         ) : (
           filteredVendors
-            .sort((a, b) => b.createdAt - a.createdAt)
             .map(vendor => {
               const vendorAssessments = (assessmentsByVendor.get(vendor.id) ?? []).sort((a, b) => b.createdAt - a.createdAt);
               const latest = vendorAssessments[0];
