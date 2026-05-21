@@ -19,5 +19,8 @@ export default defineConfig([
         ...globals.node,
       },
     },
+    rules: {
+      'react-hooks/purity': 'off',
+    },
   },
 ])
