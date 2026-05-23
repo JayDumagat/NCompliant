@@ -13,7 +13,7 @@ import { Plus, ShieldAlert, ChevronRight, ClipboardCheck, Shield } from 'lucide-
 import { toast } from 'sonner';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from '@/src/lib/router';
 
 const TYPE_SHORT: Record<AssessmentType, string> = { pia: 'PIA', risk_assessment: 'Risk', security_checklist: 'Security' };
 const TYPE_ICONS: Record<AssessmentType, typeof ShieldAlert> = { pia: ShieldAlert, risk_assessment: Shield, security_checklist: ClipboardCheck };

@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Plus, Play, Pencil, Trash2, Copy, RefreshCw, X, GripVertical } from 'lucide-react';
 import { toast } from 'sonner';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from '@/src/lib/router';
 
 const CAT_LABEL: Record<string, string> = { audit: 'Audit', policy_review: 'Policy Review', pia: 'PIA', incident: 'Incident', training: 'Training', report: 'Report', custom: 'Custom' };
 

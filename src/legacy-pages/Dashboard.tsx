@@ -3,7 +3,7 @@ import { db } from '@/db/db';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { ArrowRight, Clock, ArrowUpRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link } from '@/src/lib/router';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 

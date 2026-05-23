@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Clock, Plus, Pencil, Trash2, User, LayoutTemplate, List, Columns3, LayoutGrid } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from '@/src/lib/router';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';

@@ -12,6 +12,14 @@ function cleanEmail(raw: string): string {
   return raw.trim().toLowerCase();
 }
 
+function resolveLoginRedirectTarget(raw: string): string {
+  const nextPath = raw.trim();
+  if (!nextPath.startsWith('/')) return '/app';
+  if (nextPath.startsWith('//')) return '/app';
+  if (nextPath.startsWith('/login') || nextPath.startsWith('/register')) return '/app';
+  return nextPath;
+}
+
 export async function registerAction(formData: FormData): Promise<void> {
   const email = cleanEmail(String(formData.get('email') ?? ''));
   const password = String(formData.get('password') ?? '');
@@ -43,18 +51,24 @@ export async function registerAction(formData: FormData): Promise<void> {
 export async function loginAction(formData: FormData): Promise<void> {
   const email = cleanEmail(String(formData.get('email') ?? ''));
   const password = String(formData.get('password') ?? '');
+  const next = resolveLoginRedirectTarget(String(formData.get('next') ?? ''));
 
   const data = await readData();
   const user = data.users.find((u) => u.email === email);
   if (!user || !verifyPassword(password, user.passwordHash)) {
-    redirect('/login?error=invalid_credentials');
+    const params = new URLSearchParams({ error: 'invalid_credentials' });
+    if (next !== '/app') params.set('next', next);
+    redirect(`/login?${params.toString()}`);
   }
 
   const session = await createSession(user.id);
   await setSessionCookie(session.id);
 
   const hasMembership = data.memberships.some((m) => m.userId === user.id);
-  redirect(hasMembership ? '/app' : '/onboarding');
+  if (hasMembership) {
+    redirect(next);
+  }
+  redirect('/onboarding');
 }
 
 export async function logoutAction(): Promise<void> {

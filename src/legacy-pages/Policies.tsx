@@ -2,7 +2,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/db/db';
 import { Badge } from '@/components/ui/badge';
 import { PolicyWizard } from '@/components/policies/PolicyWizard';
-import { Link } from 'react-router-dom';
+import { Link } from '@/src/lib/router';
 import { useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';

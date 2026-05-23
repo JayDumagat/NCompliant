@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from '@/src/lib/router';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db, type Assessment, type AssessmentAnswer, type AssessmentType } from '@/db/db';
 import { Badge } from '@/components/ui/badge';
