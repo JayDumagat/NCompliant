@@ -30,5 +30,5 @@ npm run start
 
 ## Notes
 
-- Existing legacy Vite SPA files under `src/` are no longer used by the active runtime path.
+- Existing Vite SPA page files under `src/` are used by the active runtime path as the main page implementations.
 - Data is handled on the server and is not persisted in browser local storage in the active application path.

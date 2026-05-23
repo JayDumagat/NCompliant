@@ -1,6 +1,6 @@
 'use client';
 
-import Policies from '@/src/legacy-pages/Policies';
+import Policies from '@/src/main-pages/Policies';
 
 export default function PoliciesRoute() {
   return <Policies />;

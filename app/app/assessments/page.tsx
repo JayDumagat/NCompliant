@@ -1,6 +1,6 @@
 'use client';
 
-import Assessments from '@/src/legacy-pages/Assessments';
+import Assessments from '@/src/main-pages/Assessments';
 
 export default function AssessmentsRoute() {
   return <Assessments />;

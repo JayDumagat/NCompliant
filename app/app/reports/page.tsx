@@ -1,6 +1,6 @@
 'use client';
 
-import Reports from '@/src/legacy-pages/Reports';
+import Reports from '@/src/main-pages/Reports';
 
 export default function ReportsRoute() {
   return <Reports />;
