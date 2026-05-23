@@ -4,7 +4,7 @@ const SESSION_COOKIE = 'ncompliant_session';
 
 const authRoutes = ['/login', '/register'];
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
   const sessionCookie = req.cookies.get(SESSION_COOKIE)?.value;
   const { pathname } = req.nextUrl;
 
