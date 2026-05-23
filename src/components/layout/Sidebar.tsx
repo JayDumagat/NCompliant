@@ -1,10 +1,10 @@
 import { Link, useLocation } from 'react-router-dom';
 import { LayoutDashboard, FileText, CheckSquare, ClipboardCheck, Settings, PanelLeftClose, ListChecks, LayoutTemplate, GraduationCap, AlertTriangle, BarChart3, FileBarChart, Bell, MoreHorizontal, Zap, Building2, Database } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { useUIStore } from '@/store/uiStore';
-import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Sheet, SheetContent } from '@/components/ui/sheet';
+import { cn } from '@/src/lib/utils';
+import { useUIStore } from '@/src/store/uiStore';
+import { Button } from '@/src/components/ui/button';
+import { ScrollArea } from '@/src/components/ui/scroll-area';
+import { Sheet, SheetContent } from '@/src/components/ui/sheet';
 import { useState } from 'react';
 
 const NAV_ITEMS = [

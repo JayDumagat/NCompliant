@@ -1,9 +1,9 @@
 import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '@/db/db';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { cn } from '@/lib/utils';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { db } from '@/src/db/db';
+import { Card, CardContent, CardHeader, CardTitle } from '@/src/components/ui/card';
+import { Progress } from '@/src/components/ui/progress';
+import { cn } from '@/src/lib/utils';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/src/components/ui/tooltip';
 
 /* ── Donut Chart ── */
 function DonutChart({ value, size = 110, strokeWidth = 10, label }: { value: number; size?: number; strokeWidth?: number; label?: string }) {

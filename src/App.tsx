@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { AppLayout } from '@/components/layout/AppLayout';
+import { AppLayout } from '@/src/components/layout/AppLayout';
 import Dashboard from '@/pages/Dashboard';
 import Policies from '@/pages/Policies';
 import PolicyDetail from '@/pages/PolicyDetail';

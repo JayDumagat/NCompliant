@@ -4,6 +4,7 @@ import { loginAction } from '@/app/actions';
 export default async function LoginPage(props: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const searchParams = await props.searchParams;
   const error = typeof searchParams.error === 'string' ? searchParams.error : '';
+  const next = typeof searchParams.next === 'string' ? searchParams.next : '';
 
   return (
     <main className="container" style={{ maxWidth: 520 }}>
@@ -11,6 +12,7 @@ export default async function LoginPage(props: { searchParams: Promise<Record<st
         <h1>Sign in</h1>
         {error ? <p className="muted">Sign in failed: {error}</p> : null}
         <form action={loginAction} className="grid" style={{ marginTop: 12 }}>
+          {next ? <input type="hidden" name="next" value={next} /> : null}
           <label>
             Email
             <input name="email" type="email" required />

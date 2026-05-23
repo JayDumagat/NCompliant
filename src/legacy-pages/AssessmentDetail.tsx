@@ -1,23 +1,23 @@
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from '@/src/lib/router';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { db, type Assessment, type AssessmentAnswer, type AssessmentType } from '@/db/db';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Separator } from '@/components/ui/separator';
-import { Progress } from '@/components/ui/progress';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { db, type Assessment, type AssessmentAnswer, type AssessmentType } from '@/src/db/db';
+import { Badge } from '@/src/components/ui/badge';
+import { Button } from '@/src/components/ui/button';
+import { Card, CardContent } from '@/src/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/src/components/ui/dialog';
+import { Input } from '@/src/components/ui/input';
+import { Label } from '@/src/components/ui/label';
+import { Textarea } from '@/src/components/ui/textarea';
+import { Separator } from '@/src/components/ui/separator';
+import { Progress } from '@/src/components/ui/progress';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/src/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/tabs';
 import { ArrowLeft, Download, Trash2, FileText } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
-import { exportAssessmentPDF } from '@/lib/exportPdf';
-import { diffTokens } from '@/lib/wordDiff';
+import { cn } from '@/src/lib/utils';
+import { exportAssessmentPDF } from '@/src/lib/exportPdf';
+import { diffTokens } from '@/src/lib/wordDiff';
 
 const PIA_QS = [
   { id: 'q1', text: 'Is explicit consent obtained from data subjects?', cat: 'Consent' },
