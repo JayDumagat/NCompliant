@@ -1,4 +1,4 @@
-import type { Policy, Assessment, Report } from '@/db/db';
+import type { Policy, Assessment, Report } from '@/src/db/db';
 import { openPrintWindow, docCtrl, fmtDate } from './exportStyles';
 
 const RF: Record<string,string> = {none:'—',monthly:'Monthly',quarterly:'Quarterly',semi_annual:'Semi-Annual',annual:'Annual'};

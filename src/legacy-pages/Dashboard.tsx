@@ -1,11 +1,11 @@
 import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '@/db/db';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
+import { db } from '@/src/db/db';
+import { Badge } from '@/src/components/ui/badge';
+import { Progress } from '@/src/components/ui/progress';
 import { ArrowRight, Clock, ArrowUpRight } from 'lucide-react';
 import { Link } from '@/src/lib/router';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { Button } from '@/src/components/ui/button';
+import { cn } from '@/src/lib/utils';
 
 export default function Dashboard() {
   const policies = useLiveQuery(() => db.policies.toArray(), []);

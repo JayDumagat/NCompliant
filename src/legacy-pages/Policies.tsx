@@ -1,11 +1,11 @@
 import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '@/db/db';
-import { Badge } from '@/components/ui/badge';
-import { PolicyWizard } from '@/components/policies/PolicyWizard';
+import { db } from '@/src/db/db';
+import { Badge } from '@/src/components/ui/badge';
+import { PolicyWizard } from '@/src/components/policies/PolicyWizard';
 import { Link } from '@/src/lib/router';
 import { useState } from 'react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/src/components/ui/select';
+import { Input } from '@/src/components/ui/input';
 import { Search, ArrowUpRight } from 'lucide-react';
 
 const SL: Record<string, string> = { draft: 'Draft', active: 'Active', under_review: 'Review', archived: 'Archived' };

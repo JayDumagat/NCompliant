@@ -1,17 +1,17 @@
 import { useState, useEffect } from 'react';
-import { db } from '@/db/db';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
+import { db } from '@/src/db/db';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/src/components/ui/dialog';
+import { Button } from '@/src/components/ui/button';
+import { Input } from '@/src/components/ui/input';
+import { Label } from '@/src/components/ui/label';
+import { Textarea } from '@/src/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/src/components/ui/select';
+import { Progress } from '@/src/components/ui/progress';
+import { Badge } from '@/src/components/ui/badge';
+import { Separator } from '@/src/components/ui/separator';
 import { Plus, Check, FileText, Shield, Scale, AlertTriangle, Laptop, Umbrella } from 'lucide-react';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
+import { cn } from '@/src/lib/utils';
 
 const STEPS = ['Basic Info', 'Purpose & Scope', 'Requirements', 'Review Schedule', 'Review'];
 const SESSION_KEY = 'ncompliant-policy-wizard';

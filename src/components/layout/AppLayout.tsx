@@ -1,11 +1,11 @@
 import { Outlet } from 'react-router-dom';
 import { Sidebar, BottomTabBar } from './Sidebar';
 import { Topbar } from './Topbar';
-import { useUIStore } from '@/store/uiStore';
-import { cn } from '@/lib/utils';
-import { Toaster } from '@/components/ui/sonner';
+import { useUIStore } from '@/src/store/uiStore';
+import { cn } from '@/src/lib/utils';
+import { Toaster } from '@/src/components/ui/sonner';
 import { useEffect } from 'react';
-import { seedDatabase } from '@/db/db';
+import { seedDatabase } from '@/src/db/db';
 
 export function AppLayout() {
   const open = useUIStore((s) => s.sidebarOpen);

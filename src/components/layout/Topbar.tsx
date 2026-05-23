@@ -1,6 +1,6 @@
 import { Menu, WifiOff, Sun, Moon, Monitor, Download, Zap } from 'lucide-react';
-import { useUIStore } from '@/store/uiStore';
-import { Button } from '@/components/ui/button';
+import { useUIStore } from '@/src/store/uiStore';
+import { Button } from '@/src/components/ui/button';
 import { useEffect, useState } from 'react';
 
 export function Topbar() {

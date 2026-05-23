@@ -1,10 +1,10 @@
 import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '@/db/db';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
+import { db } from '@/src/db/db';
+import { Badge } from '@/src/components/ui/badge';
+import { Card, CardContent } from '@/src/components/ui/card';
 import { AlertTriangle, Info, AlertCircle, ExternalLink } from 'lucide-react';
 import { Link } from '@/src/lib/router';
-import { cn } from '@/lib/utils';
+import { cn } from '@/src/lib/utils';
 
 const SEV = {
   critical: { icon: AlertTriangle, label: 'Critical', variant: 'destructive' as const },

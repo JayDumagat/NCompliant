@@ -1,17 +1,17 @@
 import { useParams, Link, useNavigate } from '@/src/lib/router';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '@/db/db';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Textarea } from '@/components/ui/textarea';
+import { db } from '@/src/db/db';
+import { Badge } from '@/src/components/ui/badge';
+import { Button } from '@/src/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/src/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/src/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/tabs';
+import { Textarea } from '@/src/components/ui/textarea';
 import { ArrowLeft, Download, Trash2, FileText } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { exportPolicyPDF } from '@/lib/exportPdf';
-import { diffTokens } from '@/lib/wordDiff';
+import { exportPolicyPDF } from '@/src/lib/exportPdf';
+import { diffTokens } from '@/src/lib/wordDiff';
 
 const SL: Record<string, string> = { draft: 'Draft', active: 'Active', under_review: 'Review', archived: 'Archived' };
 const RF: Record<string, string> = { none: 'No schedule', monthly: 'Monthly', quarterly: 'Quarterly', semi_annual: 'Semi-Annual', annual: 'Annual' };
