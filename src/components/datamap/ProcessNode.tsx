@@ -27,6 +27,8 @@ export const ProcessNode = memo(function ProcessNode({ data, selected }: NodePro
   const color = PROCESS_COLORS[processType] || (d.color as string) || '#10b981';
   const Icon = PROCESS_ICONS[processType] || Cpu;
   const childCount = (d.childCount as number) || 0;
+  const legalBasis = typeof meta.legalBasis === 'string' ? meta.legalBasis : undefined;
+  const isAutomated = meta.automated === true;
 
   return (
     <>
@@ -52,8 +54,8 @@ export const ProcessNode = memo(function ProcessNode({ data, selected }: NodePro
           </div>
         </div>
         <div className="flex items-center justify-between mt-2.5 pt-2 border-t text-[10px] text-muted-foreground">
-          {meta.legalBasis && <span>{meta.legalBasis as string}</span>}
-          {meta.automated && <Badge variant="outline" className="text-[9px] px-1 py-0 border-emerald-500/30 text-emerald-600">Auto</Badge>}
+          {legalBasis && <span>{legalBasis}</span>}
+          {isAutomated && <Badge variant="outline" className="text-[9px] px-1 py-0 border-emerald-500/30 text-emerald-600">Auto</Badge>}
           {childCount > 0 && (
             <div className="flex items-center gap-0.5 ml-auto">
               <ChevronRight className="h-3 w-3" />

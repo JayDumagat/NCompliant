@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
 import {
-  Zap, Shield, FileText, ClipboardCheck, CheckSquare,
+  Zap, FileText, ClipboardCheck, CheckSquare,
   AlertTriangle, GraduationCap, Building2, ArrowRight,
   BarChart3, Lock, Globe, Sun, Moon, Monitor,
 } from 'lucide-react';

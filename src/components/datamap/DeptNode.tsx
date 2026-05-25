@@ -8,6 +8,8 @@ export const DeptNode = memo(function DeptNode({ data, selected }: NodeProps) {
   const meta = (d.metadata as Record<string, unknown>) || {};
   const color = (d.color as string) || '#10b981';
   const childCount = (d.childCount as number) || 0;
+  const manager = typeof meta.manager === 'string' ? meta.manager : undefined;
+  const headCount = typeof meta.headCount === 'number' ? meta.headCount : undefined;
 
   return (
     <>
@@ -26,12 +28,12 @@ export const DeptNode = memo(function DeptNode({ data, selected }: NodeProps) {
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold truncate">{d.label as string}</p>
-            {meta.manager && <p className="text-[10px] text-muted-foreground mt-0.5">{meta.manager as string}</p>}
+            {manager && <p className="text-[10px] text-muted-foreground mt-0.5">{manager}</p>}
             {(d.description as string) && <p className="text-[10px] text-muted-foreground mt-1 line-clamp-2">{d.description as string}</p>}
           </div>
         </div>
         <div className="flex items-center justify-between mt-2.5 pt-2 border-t">
-          {meta.headCount && <span className="text-[10px] text-muted-foreground">{meta.headCount as number} people</span>}
+          {headCount !== undefined && <span className="text-[10px] text-muted-foreground">{headCount} people</span>}
           {childCount > 0 && (
             <div className="flex items-center gap-0.5 text-[10px] text-muted-foreground">
               <ChevronRight className="h-3 w-3" />
