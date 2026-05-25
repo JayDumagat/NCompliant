@@ -239,6 +239,40 @@ export interface User {
   createdAt: number;
 }
 
+export type DataMapNodeType = 'organization' | 'department' | 'process' | 'data_item';
+export type DataMapProcessType = 'collection' | 'processing' | 'storage' | 'transfer' | 'deletion';
+export type DataMapClassification = 'public' | 'internal' | 'confidential' | 'restricted';
+export type DataMapSeverity = 'low' | 'medium' | 'high' | 'critical';
+
+export interface DataMapNode {
+  id: string;
+  workspaceId: string;
+  type: DataMapNodeType;
+  parentId: string | null;
+  label: string;
+  description: string;
+  positionX: number;
+  positionY: number;
+  color: string;
+  icon: string;
+  metadata: Record<string, unknown>;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface DataMapEdge {
+  id: string;
+  workspaceId: string;
+  sourceNodeId: string;
+  targetNodeId: string;
+  label: string;
+  dataTypes: string[];
+  animated: boolean;
+  level: DataMapNodeType;
+  parentId: string | null;
+  createdAt: number;
+}
+
 export interface ReportSnapshot {
   totalPolicies: number;
   activePolicies: number;
@@ -306,6 +340,8 @@ const db = new Dexie('NCompliantDB') as Dexie & {
   dataAssets: EntityTable<DataAsset, 'id'>;
   reports: EntityTable<Report, 'id'>;
   users: EntityTable<User, 'id'>;
+  dataMapNodes: EntityTable<DataMapNode, 'id'>;
+  dataMapEdges: EntityTable<DataMapEdge, 'id'>;
 };
 
 db.version(3).stores({
@@ -392,6 +428,26 @@ db.version(7).stores({
   dataAssets: 'id, workspaceId, classification, group, status, createdAt, lastReviewedAt',
   reports: 'id, workspaceId, type, template, period, status, generatedAt',
   users: 'id, &email, createdAt',
+});
+
+db.version(8).stores({
+  workspaces: 'id, name',
+  policies: 'id, workspaceId, status, category, lastUpdated',
+  tasks: 'id, workspaceId, policyId, assessmentId, status, priority, dueDate',
+  updates: 'id, agency, severity, date',
+  pias: 'id, workspaceId, status, riskLevel, createdAt',
+  assessments: 'id, workspaceId, type, status, riskLevel, createdAt',
+  taskTemplates: 'id, workspaceId, category, createdAt',
+  checklists: 'id, workspaceId, type, status, createdAt',
+  trainingRecords: 'id, workspaceId, status, category, expirationDate, createdAt',
+  incidents: 'id, workspaceId, type, severity, status, reportedDate, createdAt',
+  vendors: 'id, workspaceId, status, riskTier, serviceCategory, createdAt, lastAssessmentAt',
+  vendorAssessments: 'id, workspaceId, vendorId, assessmentType, status, riskLevel, assessedAt, nextReviewDate, createdAt',
+  dataAssets: 'id, workspaceId, classification, group, status, createdAt, lastReviewedAt',
+  reports: 'id, workspaceId, type, template, period, status, generatedAt',
+  users: 'id, &email, createdAt',
+  dataMapNodes: 'id, workspaceId, type, parentId, createdAt',
+  dataMapEdges: 'id, workspaceId, sourceNodeId, targetNodeId, level, parentId, createdAt',
 });
 
 /** Hash a password string using SHA-256 (client-side demo only). */
@@ -759,6 +815,42 @@ export async function seedDatabase() {
       createdAt: now - 90 * d,
       lastReviewedAt: now - 12 * d,
     },
+  ]);
+
+  // ── Data Map seed ──
+  await db.dataMapNodes.bulkAdd([
+    // Organizations
+    { id: 'dm-org-001', workspaceId: ws, type: 'organization', parentId: null, label: 'NCompliant Corp', description: 'Primary internal organization.', positionX: 400, positionY: 200, color: '#3b82f6', icon: 'Building2', metadata: { industry: 'Technology', location: 'Manila, PH', external: false }, createdAt: now, updatedAt: now },
+    { id: 'dm-org-002', workspaceId: ws, type: 'organization', parentId: null, label: 'CloudServe PH', description: 'Cloud hosting and infrastructure provider.', positionX: 800, positionY: 100, color: '#8b5cf6', icon: 'Cloud', metadata: { industry: 'Cloud Services', location: 'Cebu, PH', contactName: 'Rica Mendoza', contactEmail: 'rica@cloudserve.ph', external: true }, createdAt: now, updatedAt: now },
+    { id: 'dm-org-003', workspaceId: ws, type: 'organization', parentId: null, label: 'PayLink Solutions', description: 'Payment processing and financial services.', positionX: 800, positionY: 350, color: '#f59e0b', icon: 'CreditCard', metadata: { industry: 'FinTech', location: 'Makati, PH', contactName: 'Leo Santos', contactEmail: 'security@paylink.io', external: true }, createdAt: now, updatedAt: now },
+    // Departments under NCompliant
+    { id: 'dm-dept-001', workspaceId: ws, type: 'department', parentId: 'dm-org-001', label: 'Legal & Compliance', description: 'Handles legal affairs, regulatory compliance, and data protection.', positionX: 100, positionY: 100, color: '#3b82f6', icon: 'Scale', metadata: { manager: 'Ana Reyes', function: 'Compliance', headCount: 8 }, createdAt: now, updatedAt: now },
+    { id: 'dm-dept-002', workspaceId: ws, type: 'department', parentId: 'dm-org-001', label: 'IT & Security', description: 'Manages information technology infrastructure and security.', positionX: 500, positionY: 100, color: '#10b981', icon: 'Shield', metadata: { manager: 'Mark Santos', function: 'Technology', headCount: 15 }, createdAt: now, updatedAt: now },
+    { id: 'dm-dept-003', workspaceId: ws, type: 'department', parentId: 'dm-org-001', label: 'Human Resources', description: 'Employee lifecycle, training, and HR operations.', positionX: 100, positionY: 350, color: '#f59e0b', icon: 'Users', metadata: { manager: 'Jane Cruz', function: 'People Ops', headCount: 6 }, createdAt: now, updatedAt: now },
+    { id: 'dm-dept-004', workspaceId: ws, type: 'department', parentId: 'dm-org-001', label: 'Operations', description: 'Day-to-day business operations and process management.', positionX: 500, positionY: 350, color: '#8b5cf6', icon: 'Settings', metadata: { manager: 'Carlos Lim', function: 'Operations', headCount: 12 }, createdAt: now, updatedAt: now },
+    // Processes under IT & Security
+    { id: 'dm-proc-001', workspaceId: ws, type: 'process', parentId: 'dm-dept-002', label: 'Data Collection', description: 'Collects data from various internal and external sources.', positionX: 100, positionY: 150, color: '#3b82f6', icon: 'Download', metadata: { processType: 'collection', legalBasis: 'Legitimate Interest', retentionPeriod: '5 years', automated: true }, createdAt: now, updatedAt: now },
+    { id: 'dm-proc-002', workspaceId: ws, type: 'process', parentId: 'dm-dept-002', label: 'Data Processing', description: 'Transforms and analyzes collected data for business insights.', positionX: 450, positionY: 150, color: '#10b981', icon: 'Cpu', metadata: { processType: 'processing', legalBasis: 'Contract Performance', retentionPeriod: '3 years', automated: true }, createdAt: now, updatedAt: now },
+    { id: 'dm-proc-003', workspaceId: ws, type: 'process', parentId: 'dm-dept-002', label: 'Data Storage', description: 'Stores processed and raw data in secure databases.', positionX: 800, positionY: 150, color: '#f59e0b', icon: 'Database', metadata: { processType: 'storage', legalBasis: 'Legal Obligation', retentionPeriod: '10 years', automated: false }, createdAt: now, updatedAt: now },
+    // Data items under Data Storage
+    { id: 'dm-data-001', workspaceId: ws, type: 'data_item', parentId: 'dm-proc-003', label: 'Customer PII', description: 'Personal identifiable information of customers.', positionX: 100, positionY: 120, color: '#ef4444', icon: 'UserCheck', metadata: { classification: 'confidential', severity: 'high', importance: 'high', group: 'Customer Records', dataType: 'Personal Data', sourceDepartmentId: 'dm-dept-004' }, createdAt: now, updatedAt: now },
+    { id: 'dm-data-002', workspaceId: ws, type: 'data_item', parentId: 'dm-proc-003', label: 'System Logs', description: 'Application and infrastructure log files.', positionX: 450, positionY: 120, color: '#6b7280', icon: 'FileText', metadata: { classification: 'internal', severity: 'low', importance: 'medium', group: 'Operational Data', dataType: 'Log Data' }, createdAt: now, updatedAt: now },
+    { id: 'dm-data-003', workspaceId: ws, type: 'data_item', parentId: 'dm-proc-003', label: 'Financial Records', description: 'Transaction records and financial statements.', positionX: 800, positionY: 120, color: '#dc2626', icon: 'DollarSign', metadata: { classification: 'restricted', severity: 'critical', importance: 'high', group: 'Financial Data', dataType: 'Financial Data', sourceProcessId: 'dm-proc-002' }, createdAt: now, updatedAt: now },
+  ]);
+
+  await db.dataMapEdges.bulkAdd([
+    // Org-level edges
+    { id: 'dm-edge-001', workspaceId: ws, sourceNodeId: 'dm-org-001', targetNodeId: 'dm-org-002', label: 'Infrastructure & Hosting', dataTypes: ['Server Logs', 'App Data', 'Backups'], animated: true, level: 'organization', parentId: null, createdAt: now },
+    { id: 'dm-edge-002', workspaceId: ws, sourceNodeId: 'dm-org-001', targetNodeId: 'dm-org-003', label: 'Payment Processing', dataTypes: ['Transaction Data', 'Customer PII', 'Billing Info'], animated: true, level: 'organization', parentId: null, createdAt: now },
+    // Dept-level edges (under NCompliant)
+    { id: 'dm-edge-003', workspaceId: ws, sourceNodeId: 'dm-dept-002', targetNodeId: 'dm-dept-001', label: 'Security Reports', dataTypes: ['Incident Reports', 'Audit Logs'], animated: true, level: 'department', parentId: 'dm-org-001', createdAt: now },
+    { id: 'dm-edge-004', workspaceId: ws, sourceNodeId: 'dm-dept-003', targetNodeId: 'dm-dept-001', label: 'Compliance Records', dataTypes: ['Employee Training Certs', 'HR Compliance Docs'], animated: false, level: 'department', parentId: 'dm-org-001', createdAt: now },
+    { id: 'dm-edge-005', workspaceId: ws, sourceNodeId: 'dm-dept-004', targetNodeId: 'dm-dept-002', label: 'Access Requests', dataTypes: ['System Access Forms', 'Change Requests'], animated: false, level: 'department', parentId: 'dm-org-001', createdAt: now },
+    // Process-level edges (under IT)
+    { id: 'dm-edge-006', workspaceId: ws, sourceNodeId: 'dm-proc-001', targetNodeId: 'dm-proc-002', label: 'Raw Data Feed', dataTypes: ['Raw Records', 'API Payloads'], animated: true, level: 'process', parentId: 'dm-dept-002', createdAt: now },
+    { id: 'dm-edge-007', workspaceId: ws, sourceNodeId: 'dm-proc-002', targetNodeId: 'dm-proc-003', label: 'Processed Records', dataTypes: ['Cleaned Data', 'Aggregates'], animated: true, level: 'process', parentId: 'dm-dept-002', createdAt: now },
+    // Data-level edges (under Data Storage)
+    { id: 'dm-edge-008', workspaceId: ws, sourceNodeId: 'dm-data-001', targetNodeId: 'dm-data-003', label: 'Customer Billing Link', dataTypes: ['Customer ID', 'Account Ref'], animated: false, level: 'data_item', parentId: 'dm-proc-003', createdAt: now },
   ]);
 }
 

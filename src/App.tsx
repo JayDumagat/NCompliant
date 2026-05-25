@@ -21,6 +21,7 @@ import Reports from '@/pages/Reports';
 import Analytics from '@/pages/Analytics';
 import Vendors from '@/pages/Vendors';
 import DataManagement from '@/pages/DataManagement';
+import DataMapping from '@/pages/DataMapping';
 
 function RootRedirect() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -55,6 +56,7 @@ function App() {
             <Route path="/analytics" element={<Analytics />} />
             <Route path="/vendors" element={<Vendors />} />
             <Route path="/data-management" element={<DataManagement />} />
+            <Route path="/data-mapping" element={<DataMapping />} />
           </Route>
         </Route>
       </Routes>

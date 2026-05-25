@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, FileText, CheckSquare, ClipboardCheck, Settings, PanelLeftClose, ListChecks, LayoutTemplate, GraduationCap, AlertTriangle, BarChart3, FileBarChart, Bell, MoreHorizontal, Zap, Building2, Database } from 'lucide-react';
+import { LayoutDashboard, FileText, CheckSquare, ClipboardCheck, Settings, PanelLeftClose, ListChecks, LayoutTemplate, GraduationCap, AlertTriangle, BarChart3, FileBarChart, Bell, MoreHorizontal, Zap, Building2, Database, GitBranch } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useUIStore } from '@/store/uiStore';
 import { Button } from '@/components/ui/button';
@@ -8,7 +8,7 @@ import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { useState } from 'react';
 
 const NAV_ITEMS = [
-  { icon: LayoutDashboard, label: 'Dashboard', to: '/' },
+  { icon: LayoutDashboard, label: 'Dashboard', to: '/dashboard' },
   { icon: FileText, label: 'Policies', to: '/policies' },
   { icon: ClipboardCheck, label: 'Assessments', to: '/assessments' },
   { icon: CheckSquare, label: 'Tasks', to: '/tasks' },
@@ -20,12 +20,13 @@ const NAV_ITEMS = [
   { icon: GraduationCap, label: 'Training', to: '/training' },
   { icon: Building2, label: 'Vendors', to: '/vendors' },
   { icon: Database, label: 'Data', to: '/data-management' },
+  { icon: GitBranch, label: 'Data Map', to: '/data-mapping' },
   { icon: Bell, label: 'Updates', to: '/updates' },
 ];
 
 function NavLink({ item, onClick }: { item: typeof NAV_ITEMS[0]; onClick?: () => void }) {
   const loc = useLocation();
-  const active = item.to === '/' ? loc.pathname === '/' : loc.pathname.startsWith(item.to);
+  const active = item.to === '/dashboard' ? loc.pathname === '/dashboard' : loc.pathname.startsWith(item.to);
   return (
     <Link
       to={item.to}
@@ -82,7 +83,7 @@ export function Sidebar() {
 
 /* ── Bottom Tab Bar (Mobile) ── */
 const BOTTOM_TABS = [
-  { icon: LayoutDashboard, label: 'Home', to: '/' },
+  { icon: LayoutDashboard, label: 'Home', to: '/dashboard' },
   { icon: FileText, label: 'Policies', to: '/policies' },
   { icon: ClipboardCheck, label: 'Assess', to: '/assessments' },
   { icon: CheckSquare, label: 'Tasks', to: '/tasks' },
@@ -98,6 +99,7 @@ const MORE_ITEMS = [
   { icon: GraduationCap, label: 'Training', to: '/training' },
   { icon: Building2, label: 'Vendors', to: '/vendors' },
   { icon: Database, label: 'Data', to: '/data-management' },
+  { icon: GitBranch, label: 'Data Map', to: '/data-mapping' },
   { icon: Bell, label: 'Updates', to: '/updates' },
   { icon: Settings, label: 'Settings', to: '/settings' },
 ];
@@ -127,7 +129,7 @@ export function BottomTabBar() {
                 </button>
               );
             }
-            const active = tab.to === '/' ? loc.pathname === '/' : loc.pathname.startsWith(tab.to);
+            const active = tab.to === '/dashboard' ? loc.pathname === '/dashboard' : loc.pathname.startsWith(tab.to);
             return (
               <Link
                 key={tab.to}

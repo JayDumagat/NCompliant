@@ -406,3 +406,87 @@ main {
   animation: pulseRing 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
+/* === React Flow — NCompliant Theme === */
+
+.datamap-canvas {
+  background-color: var(--background) !important;
+}
+
+.datamap-canvas .react-flow__background {
+  opacity: 0.5;
+}
+
+/* Handles */
+.datamap-canvas .react-flow__handle {
+  border-color: var(--background);
+}
+.datamap-canvas .react-flow__handle.connecting {
+  background: var(--primary) !important;
+}
+
+/* Selection box */
+.datamap-canvas .react-flow__selection {
+  background: oklch(0.28 0.04 260 / 0.08);
+  border: 1px dashed oklch(0.28 0.04 260 / 0.3);
+}
+.dark .datamap-canvas .react-flow__selection {
+  background: oklch(0.72 0.08 260 / 0.08);
+  border-color: oklch(0.72 0.08 260 / 0.3);
+}
+
+/* Controls panel */
+.datamap-canvas .react-flow__controls {
+  background: var(--card) !important;
+  border-color: var(--border) !important;
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.05) !important;
+}
+.datamap-canvas .react-flow__controls-button {
+  background: var(--card) !important;
+  border-color: var(--border) !important;
+  fill: var(--foreground) !important;
+  color: var(--foreground) !important;
+}
+.datamap-canvas .react-flow__controls-button:hover {
+  background: var(--accent) !important;
+}
+.datamap-canvas .react-flow__controls-button svg {
+  fill: var(--muted-foreground) !important;
+}
+
+/* MiniMap */
+.datamap-canvas .react-flow__minimap {
+  background: var(--card) !important;
+  border-color: var(--border) !important;
+}
+.datamap-canvas .react-flow__minimap-mask {
+  fill: var(--muted) !important;
+  opacity: 0.6;
+}
+
+/* Edge animated dashes */
+@keyframes edgeDash {
+  to { stroke-dashoffset: -18; }
+}
+.datamap-canvas .react-flow__edge-animated path {
+  animation: edgeDash 0.8s linear infinite;
+}
+
+/* Edge hover */
+.datamap-canvas .react-flow__edge:hover path {
+  stroke: var(--primary) !important;
+  opacity: 1 !important;
+}
+
+/* Dots pattern color */
+.datamap-canvas .react-flow__background pattern circle {
+  fill: var(--muted-foreground);
+  opacity: 0.25;
+}
+.dark .datamap-canvas .react-flow__background pattern circle {
+  opacity: 0.15;
+}
+
+/* Attribution hide */
+.datamap-canvas .react-flow__attribution {
+  display: none !important;
+}
