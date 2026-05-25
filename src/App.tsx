@@ -1,5 +1,10 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
+import { ProtectedRoute } from '@/components/layout/ProtectedRoute';
+import { useAuthStore } from '@/store/authStore';
+import Landing from '@/pages/Landing';
+import Login from '@/pages/Login';
+import Register from '@/pages/Register';
 import Dashboard from '@/pages/Dashboard';
 import Policies from '@/pages/Policies';
 import PolicyDetail from '@/pages/PolicyDetail';
@@ -17,27 +22,40 @@ import Analytics from '@/pages/Analytics';
 import Vendors from '@/pages/Vendors';
 import DataManagement from '@/pages/DataManagement';
 
+function RootRedirect() {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  return isAuthenticated ? <Navigate to="/dashboard" replace /> : <Landing />;
+}
+
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route element={<AppLayout />}>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/policies" element={<Policies />} />
-          <Route path="/policies/:id" element={<PolicyDetail />} />
-          <Route path="/tasks" element={<Tasks />} />
-          <Route path="/updates" element={<Updates />} />
-          <Route path="/assessments" element={<Assessments />} />
-          <Route path="/assessments/:id" element={<AssessmentDetail />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/templates" element={<TaskTemplates />} />
-          <Route path="/checklists" element={<Checklists />} />
-          <Route path="/training" element={<Training />} />
-          <Route path="/incidents" element={<Incidents />} />
-          <Route path="/reports" element={<Reports />} />
-          <Route path="/analytics" element={<Analytics />} />
-          <Route path="/vendors" element={<Vendors />} />
-          <Route path="/data-management" element={<DataManagement />} />
+        {/* Public routes */}
+        <Route path="/" element={<RootRedirect />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+
+        {/* Protected app routes */}
+        <Route element={<ProtectedRoute />}>
+          <Route element={<AppLayout />}>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/policies" element={<Policies />} />
+            <Route path="/policies/:id" element={<PolicyDetail />} />
+            <Route path="/tasks" element={<Tasks />} />
+            <Route path="/updates" element={<Updates />} />
+            <Route path="/assessments" element={<Assessments />} />
+            <Route path="/assessments/:id" element={<AssessmentDetail />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/templates" element={<TaskTemplates />} />
+            <Route path="/checklists" element={<Checklists />} />
+            <Route path="/training" element={<Training />} />
+            <Route path="/incidents" element={<Incidents />} />
+            <Route path="/reports" element={<Reports />} />
+            <Route path="/analytics" element={<Analytics />} />
+            <Route path="/vendors" element={<Vendors />} />
+            <Route path="/data-management" element={<DataManagement />} />
+          </Route>
         </Route>
       </Routes>
     </BrowserRouter>

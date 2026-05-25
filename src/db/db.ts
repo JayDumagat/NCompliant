@@ -230,6 +230,15 @@ export interface DataAsset {
   lastReviewedAt?: number;
 }
 
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  passwordHash: string;
+  role: 'admin' | 'user';
+  createdAt: number;
+}
+
 export interface ReportSnapshot {
   totalPolicies: number;
   activePolicies: number;
@@ -296,6 +305,7 @@ const db = new Dexie('NCompliantDB') as Dexie & {
   vendorAssessments: EntityTable<VendorAssessment, 'id'>;
   dataAssets: EntityTable<DataAsset, 'id'>;
   reports: EntityTable<Report, 'id'>;
+  users: EntityTable<User, 'id'>;
 };
 
 db.version(3).stores({
@@ -365,6 +375,31 @@ db.version(6).stores({
   dataAssets: 'id, workspaceId, classification, group, status, createdAt, lastReviewedAt',
   reports: 'id, workspaceId, type, template, period, status, generatedAt',
 });
+
+db.version(7).stores({
+  workspaces: 'id, name',
+  policies: 'id, workspaceId, status, category, lastUpdated',
+  tasks: 'id, workspaceId, policyId, assessmentId, status, priority, dueDate',
+  updates: 'id, agency, severity, date',
+  pias: 'id, workspaceId, status, riskLevel, createdAt',
+  assessments: 'id, workspaceId, type, status, riskLevel, createdAt',
+  taskTemplates: 'id, workspaceId, category, createdAt',
+  checklists: 'id, workspaceId, type, status, createdAt',
+  trainingRecords: 'id, workspaceId, status, category, expirationDate, createdAt',
+  incidents: 'id, workspaceId, type, severity, status, reportedDate, createdAt',
+  vendors: 'id, workspaceId, status, riskTier, serviceCategory, createdAt, lastAssessmentAt',
+  vendorAssessments: 'id, workspaceId, vendorId, assessmentType, status, riskLevel, assessedAt, nextReviewDate, createdAt',
+  dataAssets: 'id, workspaceId, classification, group, status, createdAt, lastReviewedAt',
+  reports: 'id, workspaceId, type, template, period, status, generatedAt',
+  users: 'id, &email, createdAt',
+});
+
+/** Hash a password string using SHA-256 (client-side demo only). */
+export async function hashPassword(password: string): Promise<string> {
+  const encoded = new TextEncoder().encode(password);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', encoded);
+  return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
 
 export async function seedDatabase() {
   const count = await db.policies.count();
