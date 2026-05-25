@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { Zap, Eye, EyeOff, Sun, Moon, Monitor, ArrowRight, Loader2, Shield, CheckCircle2 } from 'lucide-react';
+import { Zap, Eye, EyeOff, Sun, Moon, Monitor, ArrowRight, Loader2, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
