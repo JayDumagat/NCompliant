@@ -12,6 +12,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Plus, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { DataAssetPicker } from '@/components/DataAssetPicker';
+import { useDataAssets } from '@/hooks/useDataAssets';
 
 const RISK_CLASS: Record<ThirdPartyVendor['riskTier'], string> = {
   low: 'bg-emerald-500/10 text-emerald-600',
@@ -30,6 +32,7 @@ function VendorDialog({ trigger, vendor }: { trigger: React.ReactNode; vendor?: 
     status: 'active' as ThirdPartyVendor['status'],
     riskTier: 'medium' as ThirdPartyVendor['riskTier'],
     dataAccess: 'limited' as ThirdPartyVendor['dataAccess'],
+    dataAssetIds: [] as string[],
     tags: '',
     notes: '',
   });
@@ -44,6 +47,7 @@ function VendorDialog({ trigger, vendor }: { trigger: React.ReactNode; vendor?: 
         status: vendor.status,
         riskTier: vendor.riskTier,
         dataAccess: vendor.dataAccess,
+        dataAssetIds: vendor.dataAssetIds ?? [],
         tags: vendor.tags.join(', '),
         notes: vendor.notes,
       });
@@ -57,6 +61,7 @@ function VendorDialog({ trigger, vendor }: { trigger: React.ReactNode; vendor?: 
         status: 'active',
         riskTier: 'medium',
         dataAccess: 'limited',
+        dataAssetIds: [],
         tags: '',
         notes: '',
       });
@@ -73,6 +78,7 @@ function VendorDialog({ trigger, vendor }: { trigger: React.ReactNode; vendor?: 
       status: form.status,
       riskTier: form.riskTier,
       dataAccess: form.dataAccess,
+      dataAssetIds: form.dataAssetIds,
       tags: form.tags.split(',').map(s => s.trim()).filter(Boolean),
       notes: form.notes,
     };
@@ -111,6 +117,7 @@ function VendorDialog({ trigger, vendor }: { trigger: React.ReactNode; vendor?: 
             <div className="space-y-2"><Label>Risk Tier</Label><Select value={form.riskTier} onValueChange={v => setForm({ ...form, riskTier: v as ThirdPartyVendor['riskTier'] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="low">Low</SelectItem><SelectItem value="medium">Medium</SelectItem><SelectItem value="high">High</SelectItem><SelectItem value="critical">Critical</SelectItem></SelectContent></Select></div>
             <div className="space-y-2"><Label>Data Access</Label><Select value={form.dataAccess} onValueChange={v => setForm({ ...form, dataAccess: v as ThirdPartyVendor['dataAccess'] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="none">None</SelectItem><SelectItem value="limited">Limited</SelectItem><SelectItem value="full">Full</SelectItem></SelectContent></Select></div>
           </div>
+          <DataAssetPicker label="Data Assets Accessed" value={form.dataAssetIds} onChange={(dataAssetIds) => setForm({ ...form, dataAssetIds })} />
           <div className="space-y-2"><Label>Tags (comma separated)</Label><Input value={form.tags} onChange={e => setForm({ ...form, tags: e.target.value })} placeholder="critical-vendor, finance, pii" /></div>
           <div className="space-y-2"><Label>Notes</Label><Textarea className="min-h-[80px]" value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} /></div>
         </div>
@@ -191,6 +198,7 @@ function AssessmentDialog({ trigger, vendor }: { trigger: React.ReactNode; vendo
 export default function Vendors() {
   const vendors = useLiveQuery(() => db.vendors.toArray(), []);
   const assessments = useLiveQuery(() => db.vendorAssessments.toArray(), []);
+  const { resolveIds } = useDataAssets();
   const [q, setQ] = useState('');
   const [riskFilter, setRiskFilter] = useState<'all' | ThirdPartyVendor['riskTier']>('all');
 
@@ -279,6 +287,7 @@ export default function Vendors() {
                           <Badge variant="outline">{vendor.status.replace('_', ' ')}</Badge>
                           <Badge className={cn('border-0', RISK_CLASS[vendor.riskTier])}>{vendor.riskTier} risk</Badge>
                           <Badge variant="secondary">{vendor.dataAccess} data access</Badge>
+                          {resolveIds(vendor.dataAssetIds ?? []).map((asset) => <Badge key={asset.id} variant="outline" className="text-[10px]">{asset.name}</Badge>)}
                           {vendor.tags.map(tag => <Badge key={tag} variant="outline" className="text-[10px]">{tag}</Badge>)}
                         </div>
                       </div>

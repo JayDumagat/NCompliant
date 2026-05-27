@@ -12,6 +12,9 @@ import { Plus, Pencil, Trash2, Download, AlertTriangle, RefreshCw } from 'lucide
 import { toast } from 'sonner';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
+import { DataAssetPicker } from '@/components/DataAssetPicker';
+import { useDataAssets } from '@/hooks/useDataAssets';
+import { Checkbox } from '@/components/ui/checkbox';
 
 const TYPE_LABEL: Record<string, string> = { data_breach: 'Data Breach', security: 'Security', compliance_violation: 'Compliance', operational: 'Operational', other: 'Other' };
 const STATUS_LABEL: Record<string, string> = { open: 'Open', investigating: 'Investigating', resolved: 'Resolved', closed: 'Closed' };
@@ -26,16 +29,18 @@ const FILTER_TABS = [
 
 function IncidentDialog({ incident, trigger, onDone }: { incident?: Incident; trigger: React.ReactNode; onDone: () => void }) {
   const [open, setOpen] = useState(false);
-  const [f, setF] = useState({ title: '', description: '', type: 'other' as Incident['type'], severity: 'medium' as Incident['severity'], status: 'open' as Incident['status'], reportedBy: '', findings: '', mitigationSteps: '', isRecurring: false });
+  const policies = useLiveQuery(() => db.policies.toArray(), []) ?? [];
+  const assessments = useLiveQuery(() => db.assessments.toArray(), []) ?? [];
+  const [f, setF] = useState({ title: '', description: '', type: 'other' as Incident['type'], severity: 'medium' as Incident['severity'], status: 'open' as Incident['status'], reportedBy: '', findings: '', mitigationSteps: '', isRecurring: false, linkedPolicies: [] as string[], linkedAssessments: [] as string[], affectedDataAssetIds: [] as string[] });
 
   const handleOpen = (v: boolean) => {
-    if (v && incident) setF({ title: incident.title, description: incident.description, type: incident.type, severity: incident.severity, status: incident.status, reportedBy: incident.reportedBy, findings: incident.findings, mitigationSteps: incident.mitigationSteps, isRecurring: incident.isRecurring });
-    else if (v) setF({ title: '', description: '', type: 'other', severity: 'medium', status: 'open', reportedBy: '', findings: '', mitigationSteps: '', isRecurring: false });
+    if (v && incident) setF({ title: incident.title, description: incident.description, type: incident.type, severity: incident.severity, status: incident.status, reportedBy: incident.reportedBy, findings: incident.findings, mitigationSteps: incident.mitigationSteps, isRecurring: incident.isRecurring, linkedPolicies: incident.linkedPolicies ?? [], linkedAssessments: incident.linkedAssessments ?? [], affectedDataAssetIds: incident.affectedDataAssetIds ?? [] });
+    else if (v) setF({ title: '', description: '', type: 'other', severity: 'medium', status: 'open', reportedBy: '', findings: '', mitigationSteps: '', isRecurring: false, linkedPolicies: [], linkedAssessments: [], affectedDataAssetIds: [] });
     setOpen(v);
   };
 
   const save = async () => {
-    const data = { ...f, resolvedDate: (f.status === 'resolved' || f.status === 'closed') ? Date.now() : undefined, linkedPolicies: incident?.linkedPolicies ?? [], linkedAssessments: incident?.linkedAssessments ?? [], linkedTasks: incident?.linkedTasks ?? [] };
+    const data = { ...f, resolvedDate: (f.status === 'resolved' || f.status === 'closed') ? Date.now() : undefined, linkedTasks: incident?.linkedTasks ?? [] };
     if (incident) { await db.incidents.update(incident.id, data); toast.success('Incident updated'); }
     else { await db.incidents.add({ id: crypto.randomUUID(), workspaceId: 'ws-default', reportedDate: Date.now(), createdAt: Date.now(), ...data }); toast.success('Incident logged'); }
     setOpen(false); onDone();
@@ -61,6 +66,29 @@ function IncidentDialog({ incident, trigger, onDone }: { incident?: Incident; tr
                 <SelectContent><SelectItem value="open">Open</SelectItem><SelectItem value="investigating">Investigating</SelectItem><SelectItem value="resolved">Resolved</SelectItem><SelectItem value="closed">Closed</SelectItem></SelectContent></Select></div>
           </div>
           <div className="space-y-2"><Label>Reported By</Label><Input value={f.reportedBy} onChange={e => setF({ ...f, reportedBy: e.target.value })} placeholder="Name or team" /></div>
+          <DataAssetPicker label="Affected Data" value={f.affectedDataAssetIds} onChange={(affectedDataAssetIds) => setF({ ...f, affectedDataAssetIds })} />
+          <div className="space-y-2">
+            <Label>Linked Policies</Label>
+            <div className="max-h-32 overflow-y-auto rounded-md border p-2 space-y-1.5">
+              {policies.map((policy) => (
+                <label key={policy.id} className="flex items-center gap-2 text-sm">
+                  <Checkbox checked={f.linkedPolicies.includes(policy.id)} onCheckedChange={(v) => setF((prev) => ({ ...prev, linkedPolicies: v === true ? [...prev.linkedPolicies, policy.id] : prev.linkedPolicies.filter((id) => id !== policy.id) }))} />
+                  <span>{policy.title}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label>Linked Assessments</Label>
+            <div className="max-h-32 overflow-y-auto rounded-md border p-2 space-y-1.5">
+              {assessments.map((assessment) => (
+                <label key={assessment.id} className="flex items-center gap-2 text-sm">
+                  <Checkbox checked={f.linkedAssessments.includes(assessment.id)} onCheckedChange={(v) => setF((prev) => ({ ...prev, linkedAssessments: v === true ? [...prev.linkedAssessments, assessment.id] : prev.linkedAssessments.filter((id) => id !== assessment.id) }))} />
+                  <span>{assessment.title}</span>
+                </label>
+              ))}
+            </div>
+          </div>
           <div className="space-y-2"><Label>Findings</Label><Textarea className="min-h-[60px]" value={f.findings} onChange={e => setF({ ...f, findings: e.target.value })} placeholder="Investigation findings..." /></div>
           <div className="space-y-2"><Label>Mitigation Steps</Label><Textarea className="min-h-[60px]" value={f.mitigationSteps} onChange={e => setF({ ...f, mitigationSteps: e.target.value })} placeholder="Steps taken to mitigate..." /></div>
         </div>
@@ -75,6 +103,8 @@ function IncidentDialog({ incident, trigger, onDone }: { incident?: Incident; tr
 
 function IncidentCard({ inc }: { inc: Incident }) {
   const [expanded, setExpanded] = useState(false);
+  const { resolveIds } = useDataAssets();
+  const linkedAssets = resolveIds(inc.affectedDataAssetIds ?? []);
   const exportJSON = () => {
     const blob = new Blob([JSON.stringify(inc, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `incident-${inc.title.toLowerCase().replace(/\s+/g, '-')}.json`; a.click(); URL.revokeObjectURL(url);
@@ -97,6 +127,7 @@ function IncidentCard({ inc }: { inc: Incident }) {
             <div className="flex items-center gap-1.5 mt-2">
               <Badge variant={inc.severity === 'critical' || inc.severity === 'high' ? 'destructive' : 'default'} className="text-[10px]">{inc.severity}</Badge>
               <Badge variant={inc.status === 'open' ? 'destructive' : inc.status === 'investigating' ? 'default' : 'secondary'} className="text-[10px]">{STATUS_LABEL[inc.status]}</Badge>
+              {linkedAssets.map((asset) => <Badge key={asset.id} variant="secondary" className="text-[10px]">{asset.name}</Badge>)}
             </div>
           </div>
         </div>

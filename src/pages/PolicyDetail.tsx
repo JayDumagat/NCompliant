@@ -12,6 +12,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { exportPolicyPDF } from '@/lib/exportPdf';
 import { diffTokens } from '@/lib/wordDiff';
+import { useDataAssets } from '@/hooks/useDataAssets';
 
 const SL: Record<string, string> = { draft: 'Draft', active: 'Active', under_review: 'Review', archived: 'Archived' };
 const RF: Record<string, string> = { none: 'No schedule', monthly: 'Monthly', quarterly: 'Quarterly', semi_annual: 'Semi-Annual', annual: 'Annual' };
@@ -27,6 +28,7 @@ export default function PolicyDetail() {
   const [compareOpen, setCompareOpen] = useState(false);
   const [leftVersion, setLeftVersion] = useState('1');
   const [rightVersion, setRightVersion] = useState('2');
+  const { resolveIds } = useDataAssets();
 
   const snapshots = policy
     ? [
@@ -43,6 +45,7 @@ export default function PolicyDetail() {
   const rightSnapshot = snapshots.find((v) => String(v.version) === rightVersion) ?? snapshots[snapshots.length - 1];
 
   if (!policy) return <div className="py-16 text-center text-muted-foreground">Policy not found. <Link to="/policies" className="underline">Back</Link></div>;
+  const linkedAssets = resolveIds(policy.dataAssetIds ?? []);
 
   const edit = () => { setDraft(policy.content); setEditing(true); };
   const save = async () => {
@@ -143,6 +146,20 @@ export default function PolicyDetail() {
               <div className="flex gap-1 flex-wrap">{policy.tags.map((t) => <Badge key={t} variant="secondary" className="text-[10px]">{t}</Badge>)}</div>
             </div>
           )}
+          <div className="py-3 border-b">
+            <span className="text-sm text-muted-foreground">Data Assets</span>
+            {linkedAssets.length === 0 ? (
+              <p className="text-sm mt-1">—</p>
+            ) : (
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {linkedAssets.map((asset) => (
+                  <Link key={asset.id} to="/data-management">
+                    <Badge variant="secondary" className="text-[10px]">{asset.name} · {asset.classification}</Badge>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
 
           {policy.purpose && (
             <div className="pt-6">

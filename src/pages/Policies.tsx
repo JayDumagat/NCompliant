@@ -85,6 +85,7 @@ export default function Policies() {
                   <p className="text-xs text-muted-foreground mt-0.5">{p.category} · {p.owner} · {new Date(p.lastUpdated).toLocaleDateString()}</p>
                 </div>
                 <div className="flex items-center gap-2 ml-3 shrink-0">
+                  {(p.dataAssetIds?.length ?? 0) > 0 && <Badge variant="outline" className="text-[10px]">{p.dataAssetIds.length} data assets</Badge>}
                   <Badge variant="secondary" className="text-[10px]">{SL[p.status]}</Badge>
                   <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>

@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { Handle, Position, type NodeProps } from '@xyflow/react';
-import { FileText, ArrowUpRight } from 'lucide-react';
+import { FileText, ArrowUpRight, Link2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
@@ -28,6 +28,7 @@ export const DataItemNode = memo(function DataItemNode({ data, selected }: NodeP
   const dataType = (meta.dataType as string) || '';
   const color = CLASS_COLORS[classification] || (d.color as string) || '#8b5cf6';
   const hasExternalSource = !!(meta.sourceDepartmentId || meta.sourceProcessId);
+  const hasLinkedAsset = !!meta.dataAssetId;
 
   return (
     <>
@@ -53,6 +54,12 @@ export const DataItemNode = memo(function DataItemNode({ data, selected }: NodeP
               <Badge variant="secondary" className={cn('text-[9px] px-1.5 py-0 border-0', SEVERITY_VARIANTS[severity])}>
                 {severity}
               </Badge>
+              {hasLinkedAsset && (
+                <Badge variant="secondary" className="text-[9px] px-1.5 py-0 border-0 bg-blue-500/10 text-blue-700">
+                  <Link2 className="h-2.5 w-2.5 mr-0.5" />
+                  Inventory-linked
+                </Badge>
+              )}
             </div>
           </div>
         </div>

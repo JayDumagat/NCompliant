@@ -6,7 +6,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import type { DataMapNodeType } from '@/db/db';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db, type DataMapNodeType } from '@/db/db';
 
 interface NodeDialogProps {
   open: boolean;
@@ -42,6 +43,7 @@ export function NodeDialog({ open, onOpenChange, nodeType, initialData, onSave }
   const [description, setDescription] = useState('');
   const [color, setColor] = useState('#3b82f6');
   const [meta, setMeta] = useState<Record<string, unknown>>({});
+  const dataAssets = useLiveQuery(() => db.dataAssets.toArray(), []) ?? [];
 
   useEffect(() => {
     if (open) {
@@ -185,6 +187,36 @@ export function NodeDialog({ open, onOpenChange, nodeType, initialData, onSave }
           {nodeType === 'data_item' && (
             <div className="space-y-3">
               <div className="grid grid-cols-3 gap-3">
+                <div className="space-y-1.5 col-span-3">
+                  <Label className="text-xs">Linked Data Asset (optional)</Label>
+                  <Select
+                    value={(meta.dataAssetId as string) || 'none'}
+                    onValueChange={(v) => {
+                      if (v === 'none') {
+                        setM('dataAssetId', undefined);
+                        return;
+                      }
+                      const linked = dataAssets.find((asset) => asset.id === v);
+                      if (!linked) return;
+                      setMeta((prev) => ({
+                        ...prev,
+                        dataAssetId: linked.id,
+                        classification: linked.classification,
+                        severity: linked.classification === 'restricted' ? 'critical' : linked.classification === 'confidential' ? 'high' : 'low',
+                        group: linked.group,
+                        dataType: linked.dataType,
+                      }));
+                    }}
+                  >
+                    <SelectTrigger><SelectValue placeholder="Choose from Data Inventory" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">None</SelectItem>
+                      {dataAssets.map((asset) => (
+                        <SelectItem key={asset.id} value={asset.id}>{asset.name} · {asset.group}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
                 <div className="space-y-1.5">
                   <Label className="text-xs">Classification</Label>
                   <Select value={(meta.classification as string) || 'internal'} onValueChange={v => setM('classification', v)}>

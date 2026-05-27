@@ -18,6 +18,7 @@ export interface Policy {
   purpose: string;
   scope: string;
   requirements: string;
+  dataAssetIds: string[];
   reviewFrequency: 'monthly' | 'quarterly' | 'semi_annual' | 'annual' | 'none';
   nextReviewDate?: number;
   lastUpdated: number;
@@ -76,6 +77,7 @@ export interface Assessment {
   riskLevel: 'low' | 'medium' | 'high' | 'unassessed';
   // PIA-specific
   dataTypes: string[];
+  dataAssetIds: string[];
   processingPurpose: string;
   dataSubjects: string;
   // Risk Assessment-specific
@@ -176,6 +178,7 @@ export interface Incident {
   linkedPolicies: string[];
   linkedAssessments: string[];
   linkedTasks: string[];
+  affectedDataAssetIds: string[];
   findings: string;
   mitigationSteps: string;
   isRecurring: boolean;
@@ -192,6 +195,7 @@ export interface ThirdPartyVendor {
   status: 'active' | 'under_review' | 'offboarded';
   riskTier: 'low' | 'medium' | 'high' | 'critical';
   dataAccess: 'none' | 'limited' | 'full';
+  dataAssetIds: string[];
   notes: string;
   tags: string[];
   createdAt: number;
@@ -364,6 +368,7 @@ db.version(4).stores({
   const assessments = pias.map((p: PIA): Assessment => ({
     id: p.id, workspaceId: p.workspaceId, type: 'pia', title: p.title, description: p.description,
     status: p.status, riskLevel: p.riskLevel, dataTypes: p.dataTypes, processingPurpose: p.processingPurpose,
+    dataAssetIds: [],
     dataSubjects: p.dataSubjects, assetsCovered: '', threatSources: '', systemsInScope: '', frameworkRef: '',
     answers: p.answers, findings: '', recommendations: '', score: p.score, createdAt: p.createdAt,
     completedAt: p.completedAt, versions: [],
@@ -450,6 +455,39 @@ db.version(8).stores({
   dataMapEdges: 'id, workspaceId, sourceNodeId, targetNodeId, level, parentId, createdAt',
 });
 
+db.version(9).stores({
+  workspaces: 'id, name',
+  policies: 'id, workspaceId, status, category, lastUpdated',
+  tasks: 'id, workspaceId, policyId, assessmentId, status, priority, dueDate',
+  updates: 'id, agency, severity, date',
+  pias: 'id, workspaceId, status, riskLevel, createdAt',
+  assessments: 'id, workspaceId, type, status, riskLevel, createdAt',
+  taskTemplates: 'id, workspaceId, category, createdAt',
+  checklists: 'id, workspaceId, type, status, createdAt',
+  trainingRecords: 'id, workspaceId, status, category, expirationDate, createdAt',
+  incidents: 'id, workspaceId, type, severity, status, reportedDate, createdAt',
+  vendors: 'id, workspaceId, status, riskTier, serviceCategory, createdAt, lastAssessmentAt',
+  vendorAssessments: 'id, workspaceId, vendorId, assessmentType, status, riskLevel, assessedAt, nextReviewDate, createdAt',
+  dataAssets: 'id, workspaceId, classification, group, status, createdAt, lastReviewedAt',
+  reports: 'id, workspaceId, type, template, period, status, generatedAt',
+  users: 'id, &email, createdAt',
+  dataMapNodes: 'id, workspaceId, type, parentId, createdAt',
+  dataMapEdges: 'id, workspaceId, sourceNodeId, targetNodeId, level, parentId, createdAt',
+}).upgrade(async (tx) => {
+  await tx.table('policies').toCollection().modify((p: Policy) => {
+    if (!Array.isArray(p.dataAssetIds)) p.dataAssetIds = [];
+  });
+  await tx.table('assessments').toCollection().modify((a: Assessment) => {
+    if (!Array.isArray(a.dataAssetIds)) a.dataAssetIds = [];
+  });
+  await tx.table('incidents').toCollection().modify((i: Incident) => {
+    if (!Array.isArray(i.affectedDataAssetIds)) i.affectedDataAssetIds = [];
+  });
+  await tx.table('vendors').toCollection().modify((v: ThirdPartyVendor) => {
+    if (!Array.isArray(v.dataAssetIds)) v.dataAssetIds = [];
+  });
+});
+
 /** Hash a password string using SHA-256 (client-side demo only). */
 export async function hashPassword(password: string): Promise<string> {
   const encoded = new TextEncoder().encode(password);
@@ -473,6 +511,7 @@ export async function seedDatabase() {
       owner: 'Compliance Team', department: 'Legal', purpose: 'Ensure compliance with the Data Privacy Act of 2012 (RA 10173) and protect personal information of data subjects.',
       scope: 'All employees, contractors, and third-party processors handling personal data.',
       requirements: 'Obtain explicit consent before processing personal data\nImplement appropriate security measures\nReport data breaches within 72 hours\nAppoint a Data Protection Officer',
+      dataAssetIds: ['data-001'],
       reviewFrequency: 'quarterly', nextReviewDate: now + 60 * d,
       lastUpdated: now - 2 * d, createdAt: now - 90 * d, tags: ['privacy', 'DPA', 'NPC'],
       content: 'This policy outlines how personal data is collected, processed, stored, and protected in accordance with the Data Privacy Act of 2012 (RA 10173).\n\nScope: All employees, contractors, and third-party processors.\n\nKey Requirements:\n- Obtain explicit consent before processing personal data\n- Implement appropriate security measures\n- Report data breaches within 72 hours\n- Appoint a Data Protection Officer',
@@ -486,6 +525,7 @@ export async function seedDatabase() {
       owner: 'IT Department', department: 'IT', purpose: 'Establish framework for protecting information assets from unauthorized access, disclosure, modification, and destruction.',
       scope: 'All information systems and digital assets.',
       requirements: 'Access control and authentication\nEncryption standards\nIncident response procedures\nRegular security assessments',
+      dataAssetIds: ['data-001', 'data-003'],
       reviewFrequency: 'semi_annual', nextReviewDate: now + 120 * d,
       lastUpdated: now - 5 * d, createdAt: now - 180 * d, tags: ['security', 'infosec', 'ISO27001'],
       content: 'This policy establishes the framework for protecting information assets from unauthorized access, disclosure, modification, and destruction.\n\nScope: All information systems and digital assets.\n\nKey Controls:\n- Access control and authentication\n- Encryption standards\n- Incident response procedures\n- Regular security assessments',
@@ -496,6 +536,7 @@ export async function seedDatabase() {
       owner: 'HR Department', department: 'HR', purpose: 'Define acceptable use of company IT resources to maintain security and productivity.',
       scope: 'All employees and authorized users.',
       requirements: 'No unauthorized software installation\nNo accessing inappropriate content\nNo sharing credentials',
+      dataAssetIds: ['data-002'],
       reviewFrequency: 'annual', nextReviewDate: now + 30 * d,
       lastUpdated: now - 1 * d, createdAt: now - 60 * d, tags: ['operations', 'HR', 'IT'],
       content: 'This policy defines the acceptable use of company IT resources.\n\nScope: All employees and authorized users.\n\nProhibited Activities:\n- Unauthorized software installation\n- Accessing inappropriate content\n- Sharing credentials',
@@ -506,6 +547,7 @@ export async function seedDatabase() {
       owner: 'Operations', department: 'Operations', purpose: 'Outline procedures for maintaining essential business functions during and after a disaster.',
       scope: 'All critical business operations and supporting infrastructure.',
       requirements: 'Business impact analysis\nRecovery time objectives\nCommunication plan\nTesting schedule',
+      dataAssetIds: ['data-001', 'data-003'],
       reviewFrequency: 'annual', nextReviewDate: now + 90 * d,
       lastUpdated: now - 10 * d, createdAt: now - 15 * d, tags: ['BCP', 'disaster-recovery'],
       content: 'This document outlines procedures for maintaining essential business functions during and after a disaster or significant disruption.',
@@ -516,6 +558,7 @@ export async function seedDatabase() {
       owner: 'Legal Department', department: 'Legal', purpose: 'Establish procedures to detect and prevent money laundering activities.',
       scope: 'All financial transactions and customer relationships.',
       requirements: 'Know Your Customer (KYC) procedures\nTransaction monitoring\nSuspicious activity reporting\nRecord keeping',
+      dataAssetIds: ['data-001', 'data-003'],
       reviewFrequency: 'quarterly', nextReviewDate: now + 45 * d,
       lastUpdated: now - 20 * d, createdAt: now - 365 * d, tags: ['AML', 'AMLC'],
       content: 'This policy establishes procedures to detect and prevent money laundering activities in compliance with the Anti-Money Laundering Act.',
@@ -557,6 +600,7 @@ export async function seedDatabase() {
     {
       id: 'asm-001', workspaceId: ws, type: 'pia', title: 'Customer Onboarding System', description: 'Assessment of the new digital customer onboarding flow.',
       status: 'completed', riskLevel: 'medium', dataTypes: ['Personal Information', 'Financial Data', 'Government IDs'],
+      dataAssetIds: ['data-001', 'data-003'],
       processingPurpose: 'Customer identity verification and account creation', dataSubjects: 'New customers and applicants',
       assetsCovered: '', threatSources: '', systemsInScope: '', frameworkRef: '',
       score: 72, createdAt: now - 60 * d, completedAt: now - 30 * d, findings: 'Data retention policies require updating. DPIA not yet conducted for expanded processing.', recommendations: 'Update retention schedule. Conduct full DPIA. Enhance encryption for ID documents.',
@@ -572,6 +616,7 @@ export async function seedDatabase() {
     {
       id: 'asm-002', workspaceId: ws, type: 'pia', title: 'Employee Monitoring System', description: 'Assessment of workplace activity monitoring tools.',
       status: 'in_progress', riskLevel: 'high', dataTypes: ['Employee Activity Data', 'Communications', 'Location Data'],
+      dataAssetIds: ['data-002'],
       processingPurpose: 'Productivity monitoring and security compliance', dataSubjects: 'All employees',
       assetsCovered: '', threatSources: '', systemsInScope: '', frameworkRef: '',
       score: 45, createdAt: now - 14 * d, findings: '', recommendations: '',
@@ -585,6 +630,7 @@ export async function seedDatabase() {
     {
       id: 'asm-003', workspaceId: ws, type: 'pia', title: 'Marketing Analytics Platform', description: 'Assessment of third-party analytics tools usage.',
       status: 'not_started', riskLevel: 'unassessed', dataTypes: ['Browsing Data', 'Demographics'],
+      dataAssetIds: ['data-003'],
       processingPurpose: 'Campaign effectiveness analysis', dataSubjects: 'Website visitors',
       assetsCovered: '', threatSources: '', systemsInScope: '', frameworkRef: '',
       score: 0, createdAt: now - 3 * d, findings: '', recommendations: '',
@@ -593,6 +639,7 @@ export async function seedDatabase() {
     {
       id: 'asm-004', workspaceId: ws, type: 'risk_assessment', title: 'Cloud Infrastructure Risk Review', description: 'Evaluate risks associated with cloud migration.',
       status: 'in_progress', riskLevel: 'medium', dataTypes: [],
+      dataAssetIds: ['data-001', 'data-003'],
       processingPurpose: '', dataSubjects: '',
       assetsCovered: 'AWS EC2, S3, RDS instances', threatSources: 'External actors, misconfigurations, insider threats',
       systemsInScope: '', frameworkRef: '',
@@ -607,6 +654,7 @@ export async function seedDatabase() {
     {
       id: 'asm-005', workspaceId: ws, type: 'security_checklist', title: 'ISO 27001 Controls Review', description: 'Annual security controls checklist aligned with ISO 27001.',
       status: 'not_started', riskLevel: 'unassessed', dataTypes: [],
+      dataAssetIds: ['data-001', 'data-002', 'data-003'],
       processingPurpose: '', dataSubjects: '',
       assetsCovered: '', threatSources: '',
       systemsInScope: 'All production servers, network infrastructure', frameworkRef: 'ISO/IEC 27001:2022',
@@ -672,9 +720,9 @@ export async function seedDatabase() {
   ]);
 
   await db.incidents.bulkAdd([
-    { id: 'inc-001', workspaceId: ws, title: 'Unauthorized Access Attempt', description: 'Multiple failed login attempts detected from unknown IP.', type: 'security', severity: 'high', status: 'resolved', reportedBy: 'IT Security', reportedDate: now - 15 * d, resolvedDate: now - 12 * d, linkedPolicies: ['pol-002'], linkedAssessments: [], linkedTasks: [], findings: 'Brute force attempt from external IP. No data compromised.', mitigationSteps: 'IP blocked. MFA enforcement expanded. Rate limiting implemented.', isRecurring: false, createdAt: now - 15 * d },
-    { id: 'inc-002', workspaceId: ws, title: 'Customer Data Export Without Approval', description: 'Employee exported customer list without proper authorization.', type: 'compliance_violation', severity: 'medium', status: 'investigating', reportedBy: 'Compliance Team', reportedDate: now - 3 * d, linkedPolicies: ['pol-001'], linkedAssessments: ['asm-001'], linkedTasks: [], findings: '', mitigationSteps: '', isRecurring: false, createdAt: now - 3 * d },
-    { id: 'inc-003', workspaceId: ws, title: 'Phishing Email Reported', description: 'Staff member reported suspicious email targeting credentials.', type: 'security', severity: 'low', status: 'closed', reportedBy: 'Mark Santos', reportedDate: now - 25 * d, resolvedDate: now - 24 * d, linkedPolicies: ['pol-002'], linkedAssessments: [], linkedTasks: [], findings: 'Phishing email blocked. No credentials compromised.', mitigationSteps: 'Security awareness reminder sent to all staff.', isRecurring: true, createdAt: now - 25 * d },
+    { id: 'inc-001', workspaceId: ws, title: 'Unauthorized Access Attempt', description: 'Multiple failed login attempts detected from unknown IP.', type: 'security', severity: 'high', status: 'resolved', reportedBy: 'IT Security', reportedDate: now - 15 * d, resolvedDate: now - 12 * d, linkedPolicies: ['pol-002'], linkedAssessments: [], linkedTasks: [], affectedDataAssetIds: ['data-001'], findings: 'Brute force attempt from external IP. No data compromised.', mitigationSteps: 'IP blocked. MFA enforcement expanded. Rate limiting implemented.', isRecurring: false, createdAt: now - 15 * d },
+    { id: 'inc-002', workspaceId: ws, title: 'Customer Data Export Without Approval', description: 'Employee exported customer list without proper authorization.', type: 'compliance_violation', severity: 'medium', status: 'investigating', reportedBy: 'Compliance Team', reportedDate: now - 3 * d, linkedPolicies: ['pol-001'], linkedAssessments: ['asm-001'], linkedTasks: [], affectedDataAssetIds: ['data-001'], findings: '', mitigationSteps: '', isRecurring: false, createdAt: now - 3 * d },
+    { id: 'inc-003', workspaceId: ws, title: 'Phishing Email Reported', description: 'Staff member reported suspicious email targeting credentials.', type: 'security', severity: 'low', status: 'closed', reportedBy: 'Mark Santos', reportedDate: now - 25 * d, resolvedDate: now - 24 * d, linkedPolicies: ['pol-002'], linkedAssessments: [], linkedTasks: [], affectedDataAssetIds: ['data-003'], findings: 'Phishing email blocked. No credentials compromised.', mitigationSteps: 'Security awareness reminder sent to all staff.', isRecurring: true, createdAt: now - 25 * d },
   ]);
 
   await db.vendors.bulkAdd([
@@ -688,6 +736,7 @@ export async function seedDatabase() {
       status: 'active',
       riskTier: 'high',
       dataAccess: 'full',
+      dataAssetIds: ['data-001', 'data-003'],
       notes: 'Hosts production systems and customer databases.',
       tags: ['critical-vendor', 'cloud', 'infrastructure'],
       createdAt: now - 120 * d,
@@ -703,6 +752,7 @@ export async function seedDatabase() {
       status: 'under_review',
       riskTier: 'critical',
       dataAccess: 'full',
+      dataAssetIds: ['data-001', 'data-003'],
       notes: 'Processes cardholder and billing data.',
       tags: ['payments', 'pci', 'critical-vendor'],
       createdAt: now - 75 * d,
@@ -718,6 +768,7 @@ export async function seedDatabase() {
       status: 'active',
       riskTier: 'medium',
       dataAccess: 'limited',
+      dataAssetIds: ['data-002'],
       notes: 'Used for employee onboarding and records.',
       tags: ['hr', 'employee-data'],
       createdAt: now - 45 * d,
@@ -833,9 +884,9 @@ export async function seedDatabase() {
     { id: 'dm-proc-002', workspaceId: ws, type: 'process', parentId: 'dm-dept-002', label: 'Data Processing', description: 'Transforms and analyzes collected data for business insights.', positionX: 450, positionY: 150, color: '#10b981', icon: 'Cpu', metadata: { processType: 'processing', legalBasis: 'Contract Performance', retentionPeriod: '3 years', automated: true }, createdAt: now, updatedAt: now },
     { id: 'dm-proc-003', workspaceId: ws, type: 'process', parentId: 'dm-dept-002', label: 'Data Storage', description: 'Stores processed and raw data in secure databases.', positionX: 800, positionY: 150, color: '#f59e0b', icon: 'Database', metadata: { processType: 'storage', legalBasis: 'Legal Obligation', retentionPeriod: '10 years', automated: false }, createdAt: now, updatedAt: now },
     // Data items under Data Storage
-    { id: 'dm-data-001', workspaceId: ws, type: 'data_item', parentId: 'dm-proc-003', label: 'Customer PII', description: 'Personal identifiable information of customers.', positionX: 100, positionY: 120, color: '#ef4444', icon: 'UserCheck', metadata: { classification: 'confidential', severity: 'high', importance: 'high', group: 'Customer Records', dataType: 'Personal Data', sourceDepartmentId: 'dm-dept-004' }, createdAt: now, updatedAt: now },
+    { id: 'dm-data-001', workspaceId: ws, type: 'data_item', parentId: 'dm-proc-003', label: 'Customer PII', description: 'Personal identifiable information of customers.', positionX: 100, positionY: 120, color: '#ef4444', icon: 'UserCheck', metadata: { classification: 'confidential', severity: 'high', importance: 'high', group: 'Customer Records', dataType: 'Personal Data', dataAssetId: 'data-001', sourceDepartmentId: 'dm-dept-004' }, createdAt: now, updatedAt: now },
     { id: 'dm-data-002', workspaceId: ws, type: 'data_item', parentId: 'dm-proc-003', label: 'System Logs', description: 'Application and infrastructure log files.', positionX: 450, positionY: 120, color: '#6b7280', icon: 'FileText', metadata: { classification: 'internal', severity: 'low', importance: 'medium', group: 'Operational Data', dataType: 'Log Data' }, createdAt: now, updatedAt: now },
-    { id: 'dm-data-003', workspaceId: ws, type: 'data_item', parentId: 'dm-proc-003', label: 'Financial Records', description: 'Transaction records and financial statements.', positionX: 800, positionY: 120, color: '#dc2626', icon: 'DollarSign', metadata: { classification: 'restricted', severity: 'critical', importance: 'high', group: 'Financial Data', dataType: 'Financial Data', sourceProcessId: 'dm-proc-002' }, createdAt: now, updatedAt: now },
+    { id: 'dm-data-003', workspaceId: ws, type: 'data_item', parentId: 'dm-proc-003', label: 'Financial Records', description: 'Transaction records and financial statements.', positionX: 800, positionY: 120, color: '#dc2626', icon: 'DollarSign', metadata: { classification: 'restricted', severity: 'critical', importance: 'high', group: 'Financial Data', dataType: 'Financial Data', dataAssetId: 'data-003', sourceProcessId: 'dm-proc-002' }, createdAt: now, updatedAt: now },
   ]);
 
   await db.dataMapEdges.bulkAdd([

@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db, type Assessment, type AssessmentAnswer, type AssessmentType } from '@/db/db';
 import { Badge } from '@/components/ui/badge';
@@ -18,6 +18,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { exportAssessmentPDF } from '@/lib/exportPdf';
 import { diffTokens } from '@/lib/wordDiff';
+import { useDataAssets } from '@/hooks/useDataAssets';
 
 const PIA_QS = [
   { id: 'q1', text: 'Is explicit consent obtained from data subjects?', cat: 'Consent' },
@@ -85,6 +86,7 @@ export default function AssessmentDetail() {
   const [compareOpen, setCompareOpen] = useState(false);
   const [leftVersion, setLeftVersion] = useState('1');
   const [rightVersion, setRightVersion] = useState('2');
+  const { resolveIds } = useDataAssets();
 
   if (!assessment) return <div className="py-16 text-center text-muted-foreground">Assessment not found. <button onClick={() => nav('/assessments')} className="underline">Back</button></div>;
 
@@ -96,6 +98,7 @@ export default function AssessmentDetail() {
 
   const score = calcScore(answers);
   const risk = calcRisk(score);
+  const linkedAssets = resolveIds(assessment.dataAssetIds ?? []);
 
   const setAnswer = (qId: string, answer: AssessmentAnswer['answer']) => setAnswers(prev => prev!.map(a => a.questionId === qId ? { ...a, answer } : a));
   const setNotes = (qId: string, notes: string) => setAnswers(prev => prev!.map(a => a.questionId === qId ? { ...a, notes } : a));
@@ -179,7 +182,22 @@ export default function AssessmentDetail() {
         <TabsContent value="questions" className="mt-6 space-y-4">
           <div className="grid gap-4 sm:grid-cols-3">
             {assessment.type === 'pia' && <>
-              <div className="rounded-lg border p-4"><p className="text-sm text-muted-foreground mb-1">Data Types</p><p className="text-sm font-medium">{assessment.dataTypes.join(', ') || '—'}</p></div>
+              <div className="rounded-lg border p-4 sm:col-span-3">
+                <p className="text-sm text-muted-foreground mb-2">Data Assets</p>
+                {linkedAssets.length === 0 ? (
+                  <p className="text-sm font-medium">{assessment.dataTypes.join(', ') || '—'}</p>
+                ) : (
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    {linkedAssets.map((asset) => (
+                      <Link key={asset.id} to="/data-management" className="rounded-md border p-3 hover:bg-accent/40 transition-colors">
+                        <p className="text-sm font-medium">{asset.name}</p>
+                        <p className="text-xs text-muted-foreground mt-1">{asset.group || 'Ungrouped'} · {asset.dataType}</p>
+                        <Badge variant="secondary" className="mt-2 text-[10px]">{asset.classification}</Badge>
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
               <div className="rounded-lg border p-4"><p className="text-sm text-muted-foreground mb-1">Purpose</p><p className="text-sm font-medium">{assessment.processingPurpose || '—'}</p></div>
               <div className="rounded-lg border p-4"><p className="text-sm text-muted-foreground mb-1">Data Subjects</p><p className="text-sm font-medium">{assessment.dataSubjects || '—'}</p></div>
             </>}

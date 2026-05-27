@@ -12,6 +12,7 @@ import { Separator } from '@/components/ui/separator';
 import { Plus, Check, FileText, Shield, Scale, AlertTriangle, Laptop, Umbrella } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { DataAssetPicker } from '@/components/DataAssetPicker';
 
 const STEPS = ['Basic Info', 'Purpose & Scope', 'Requirements', 'Review Schedule', 'Review'];
 const SESSION_KEY = 'ncompliant-policy-wizard';
@@ -45,10 +46,11 @@ const POLICY_TEMPLATES = [
 
 interface WizardState {
   title: string; category: string; owner: string; department: string; tags: string;
+  dataAssetIds: string[];
   purpose: string; scope: string; content: string; requirements: string;
   reviewFrequency: string; nextReviewDate: string;
 }
-const emptyState: WizardState = { title: '', category: '', owner: '', department: '', tags: '', purpose: '', scope: '', content: '', requirements: '', reviewFrequency: 'none', nextReviewDate: '' };
+const emptyState: WizardState = { title: '', category: '', owner: '', department: '', tags: '', dataAssetIds: [], purpose: '', scope: '', content: '', requirements: '', reviewFrequency: 'none', nextReviewDate: '' };
 
 function loadSession(): { step: number; form: WizardState } | null {
   try { const r = sessionStorage.getItem(SESSION_KEY); return r ? JSON.parse(r) : null; } catch { return null; }
@@ -75,6 +77,7 @@ export function PolicyWizard() {
     await db.policies.add({
       id: crypto.randomUUID(), workspaceId: 'ws-default', title: f.title, status: 'draft',
       category: f.category, owner: f.owner, department: f.department,
+      dataAssetIds: f.dataAssetIds,
       purpose: f.purpose, scope: f.scope,
       content: f.content || `${f.purpose}\n\n${f.scope}\n\n${f.requirements}`.trim(),
       requirements: f.requirements,
@@ -98,7 +101,7 @@ export function PolicyWizard() {
   };
 
   const exportJSON = () => {
-    const blob = new Blob([JSON.stringify({ title: f.title, category: f.category, owner: f.owner, department: f.department, purpose: f.purpose, scope: f.scope, content: f.content, requirements: f.requirements, reviewFrequency: f.reviewFrequency, tags: f.tags.split(',').map(s => s.trim()).filter(Boolean) }, null, 2)], { type: 'application/json' });
+    const blob = new Blob([JSON.stringify({ title: f.title, category: f.category, owner: f.owner, department: f.department, purpose: f.purpose, scope: f.scope, content: f.content, requirements: f.requirements, reviewFrequency: f.reviewFrequency, dataAssetIds: f.dataAssetIds, tags: f.tags.split(',').map(s => s.trim()).filter(Boolean) }, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href = url; a.download = `policy-${f.title.toLowerCase().replace(/\s+/g, '-') || 'draft'}.json`; a.click();
     URL.revokeObjectURL(url); toast.success('Exported as JSON');
@@ -167,6 +170,7 @@ export function PolicyWizard() {
                 <div className="space-y-2"><Label>Department</Label><Input value={f.department} onChange={(e) => setF({ ...f, department: e.target.value })} placeholder="Legal" /></div>
                 <div className="space-y-2"><Label>Tags (comma separated)</Label><Input value={f.tags} onChange={(e) => setF({ ...f, tags: e.target.value })} placeholder="privacy, NPC" /></div>
               </div>
+              <DataAssetPicker value={f.dataAssetIds} onChange={(dataAssetIds) => setF({ ...f, dataAssetIds })} />
             </div>
           )}
 
@@ -209,6 +213,7 @@ export function PolicyWizard() {
                   { label: 'Owner', value: f.owner },
                   { label: 'Department', value: f.department || '—' },
                   { label: 'Tags', value: f.tags || '—' },
+                  { label: 'Linked Data Assets', value: f.dataAssetIds.length ? `${f.dataAssetIds.length} linked` : '—' },
                   { label: 'Review', value: f.reviewFrequency === 'none' ? 'No schedule' : f.reviewFrequency.replace('_', '-') },
                   { label: 'Content', value: `${(f.content || f.purpose || '').length} characters` },
                   { label: 'Requirements', value: f.requirements ? `${f.requirements.split('\n').filter(Boolean).length} items` : '—' },
