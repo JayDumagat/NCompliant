@@ -86,6 +86,7 @@ function NewDialog() {
               <div className="space-y-2"><Label>Description</Label><Textarea className="min-h-[80px]" value={f.description} onChange={e => setF({ ...f, description: e.target.value })} /></div>
               <DataAssetPicker value={f.dataAssetIds} onChange={(dataAssetIds) => setF({ ...f, dataAssetIds })} />
               {f.type === 'pia' && <>
+                <div className="space-y-2"><Label>Manual Data Types (optional, comma separated)</Label><Input value={f.dataTypes} onChange={e => setF({ ...f, dataTypes: e.target.value })} placeholder="Used if no data assets are selected" /></div>
                 <div className="space-y-2"><Label>Processing purpose</Label><Input value={f.processingPurpose} onChange={e => setF({ ...f, processingPurpose: e.target.value })} /></div>
                 <div className="space-y-2"><Label>Data subjects</Label><Input value={f.dataSubjects} onChange={e => setF({ ...f, dataSubjects: e.target.value })} /></div>
               </>}

@@ -3,7 +3,8 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { db, type DataAsset } from '@/db/db';
 
 export function useDataAssets() {
-  const assets = useLiveQuery(() => db.dataAssets.toArray(), []) ?? [];
+  const rawAssets = useLiveQuery(() => db.dataAssets.toArray(), []);
+  const assets = useMemo(() => rawAssets ?? [], [rawAssets]);
 
   const assetMap = useMemo(() => {
     return new Map<string, DataAsset>(assets.map((asset) => [asset.id, asset]));

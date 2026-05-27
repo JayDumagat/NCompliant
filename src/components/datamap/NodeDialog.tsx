@@ -38,6 +38,13 @@ const CLASSIFICATIONS = ['public', 'internal', 'confidential', 'restricted'];
 const SEVERITIES = ['low', 'medium', 'high', 'critical'];
 const IMPORTANCES = ['low', 'medium', 'high'];
 
+const CLASSIFICATION_TO_SEVERITY: Record<string, string> = {
+  public: 'low',
+  internal: 'low',
+  confidential: 'high',
+  restricted: 'critical',
+};
+
 export function NodeDialog({ open, onOpenChange, nodeType, initialData, onSave }: NodeDialogProps) {
   const [label, setLabel] = useState('');
   const [description, setDescription] = useState('');
@@ -202,7 +209,7 @@ export function NodeDialog({ open, onOpenChange, nodeType, initialData, onSave }
                         ...prev,
                         dataAssetId: linked.id,
                         classification: linked.classification,
-                        severity: linked.classification === 'restricted' ? 'critical' : linked.classification === 'confidential' ? 'high' : 'low',
+                        severity: CLASSIFICATION_TO_SEVERITY[linked.classification] ?? 'low',
                         group: linked.group,
                         dataType: linked.dataType,
                       }));

@@ -573,6 +573,7 @@ export async function seedDatabase() {
       owner: 'Compliance Team', department: 'Legal', purpose: 'Define retention periods for various categories of data and procedures for secure disposal.',
       scope: 'All data stored in physical and digital formats.',
       requirements: 'Retention schedule by data category\nSecure disposal procedures\nAudit trail\nException handling',
+      dataAssetIds: ['data-001', 'data-002', 'data-003'],
       reviewFrequency: 'annual', nextReviewDate: now + 180 * d,
       lastUpdated: now - 45 * d, createdAt: now - 200 * d, tags: ['retention', 'privacy'],
       content: 'This policy defines the retention periods for various categories of data and the procedures for secure disposal.',

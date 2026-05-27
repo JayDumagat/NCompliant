@@ -211,17 +211,15 @@ export default function DataManagement() {
           <Card><CardContent className="py-12 text-center text-muted-foreground">No data records found.</CardContent></Card>
         ) : (
           filtered
-            .map(asset => (
-              <Card key={asset.id}>
-                <CardContent className="p-5 space-y-3">
-                  {(() => {
-                   const policyRefs = policies.filter((p) => (p.dataAssetIds ?? []).includes(asset.id));
-                   const assessmentRefs = assessments.filter((a) => (a.dataAssetIds ?? []).includes(asset.id));
-                   const vendorRefs = vendors.filter((v) => (v.dataAssetIds ?? []).includes(asset.id));
-                   const incidentRefs = incidents.filter((i) => (i.affectedDataAssetIds ?? []).includes(asset.id));
-                   const nodeRefs = dataMapNodes.filter((n) => (n.metadata?.dataAssetId as string | undefined) === asset.id);
-                   return (
-                     <>
+            .map(asset => {
+              const policyRefs = policies.filter((p) => (p.dataAssetIds ?? []).includes(asset.id));
+              const assessmentRefs = assessments.filter((a) => (a.dataAssetIds ?? []).includes(asset.id));
+              const vendorRefs = vendors.filter((v) => (v.dataAssetIds ?? []).includes(asset.id));
+              const incidentRefs = incidents.filter((i) => (i.affectedDataAssetIds ?? []).includes(asset.id));
+              const nodeRefs = dataMapNodes.filter((n) => (n.metadata?.dataAssetId as string | undefined) === asset.id);
+              return (
+                <Card key={asset.id}>
+                  <CardContent className="p-5 space-y-3">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <p className="text-sm font-medium">{asset.name}</p>
@@ -252,12 +250,10 @@ export default function DataManagement() {
                       )}
                     </div>
                   </div>
-                      </>
-                    );
-                  })()}
-                </CardContent>
-              </Card>
-            ))
+                  </CardContent>
+                </Card>
+              );
+            })
         )}
       </div>
     </div>

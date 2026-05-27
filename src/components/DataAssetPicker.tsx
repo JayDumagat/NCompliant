@@ -62,7 +62,10 @@ export function DataAssetPicker({ value, onChange, label = 'Data Assets' }: Data
   const remove = (id: string) => onChange(value.filter((v) => v !== id));
 
   const createAsset = async () => {
-    if (!newAsset.name || !newAsset.dataType || !newAsset.group) return;
+    if (!newAsset.name || !newAsset.dataType || !newAsset.group) {
+      toast.error('Name, data type, and group are required');
+      return;
+    }
     const id = crypto.randomUUID();
     await db.dataAssets.add({
       id,
