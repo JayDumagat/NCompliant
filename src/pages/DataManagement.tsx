@@ -12,6 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { Link } from 'react-router-dom';
 
 const CLASS_COLORS: Record<DataAsset['classification'], string> = {
   public: 'bg-sky-500/10 text-sky-700',
@@ -129,6 +130,11 @@ function DataAssetDialog({ trigger, asset }: { trigger: React.ReactNode; asset?:
 
 export default function DataManagement() {
   const assets = useLiveQuery(() => db.dataAssets.toArray(), []);
+  const policies = useLiveQuery(() => db.policies.toArray(), []) ?? [];
+  const assessments = useLiveQuery(() => db.assessments.toArray(), []) ?? [];
+  const vendors = useLiveQuery(() => db.vendors.toArray(), []) ?? [];
+  const incidents = useLiveQuery(() => db.incidents.toArray(), []) ?? [];
+  const dataMapNodes = useLiveQuery(() => db.dataMapNodes.where('type').equals('data_item').toArray(), []) ?? [];
   const [q, setQ] = useState('');
   const [classification, setClassification] = useState<'all' | DataAsset['classification']>('all');
   const [groupFilter, setGroupFilter] = useState('all');
@@ -205,9 +211,15 @@ export default function DataManagement() {
           <Card><CardContent className="py-12 text-center text-muted-foreground">No data records found.</CardContent></Card>
         ) : (
           filtered
-            .map(asset => (
-              <Card key={asset.id}>
-                <CardContent className="p-5 space-y-3">
+            .map(asset => {
+              const policyRefs = policies.filter((p) => (p.dataAssetIds ?? []).includes(asset.id));
+              const assessmentRefs = assessments.filter((a) => (a.dataAssetIds ?? []).includes(asset.id));
+              const vendorRefs = vendors.filter((v) => (v.dataAssetIds ?? []).includes(asset.id));
+              const incidentRefs = incidents.filter((i) => (i.affectedDataAssetIds ?? []).includes(asset.id));
+              const nodeRefs = dataMapNodes.filter((n) => (n.metadata?.dataAssetId as string | undefined) === asset.id);
+              return (
+                <Card key={asset.id}>
+                  <CardContent className="p-5 space-y-3">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <p className="text-sm font-medium">{asset.name}</p>
@@ -225,9 +237,23 @@ export default function DataManagement() {
                     <p>Retention: {asset.retentionPolicy || '—'}</p>
                     <p>Last review: {asset.lastReviewedAt ? new Date(asset.lastReviewedAt).toLocaleDateString() : '—'}</p>
                   </div>
-                </CardContent>
-              </Card>
-            ))
+                  <div className="rounded-md border p-3 space-y-2">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Used In</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {policyRefs.map((p) => <Link key={p.id} to={`/policies/${p.id}`}><Badge variant="secondary" className="text-[10px]">Policy: {p.title}</Badge></Link>)}
+                      {assessmentRefs.map((a) => <Link key={a.id} to={`/assessments/${a.id}`}><Badge variant="secondary" className="text-[10px]">Assessment: {a.title}</Badge></Link>)}
+                      {vendorRefs.map((v) => <Link key={v.id} to="/vendors"><Badge variant="secondary" className="text-[10px]">Vendor: {v.name}</Badge></Link>)}
+                      {incidentRefs.map((i) => <Link key={i.id} to="/incidents"><Badge variant="secondary" className="text-[10px]">Incident: {i.title}</Badge></Link>)}
+                      {nodeRefs.map((n) => <Link key={n.id} to="/data-mapping"><Badge variant="secondary" className="text-[10px]">Map Node: {n.label}</Badge></Link>)}
+                      {!policyRefs.length && !assessmentRefs.length && !vendorRefs.length && !incidentRefs.length && !nodeRefs.length && (
+                        <p className="text-xs text-muted-foreground">No references yet.</p>
+                      )}
+                    </div>
+                  </div>
+                  </CardContent>
+                </Card>
+              );
+            })
         )}
       </div>
     </div>

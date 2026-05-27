@@ -13,7 +13,9 @@ import { Plus, ShieldAlert, ChevronRight, ClipboardCheck, Shield } from 'lucide-
 import { toast } from 'sonner';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { DataAssetPicker } from '@/components/DataAssetPicker';
+import { useDataAssets } from '@/hooks/useDataAssets';
 
 const TYPE_SHORT: Record<AssessmentType, string> = { pia: 'PIA', risk_assessment: 'Risk', security_checklist: 'Security' };
 const TYPE_ICONS: Record<AssessmentType, typeof ShieldAlert> = { pia: ShieldAlert, risk_assessment: Shield, security_checklist: ClipboardCheck };
@@ -32,20 +34,23 @@ function NewDialog() {
   const nav = useNavigate();
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<'template' | 'form'>('template');
-  const [f, setF] = useState({ type: 'pia' as AssessmentType, title: '', description: '', dataTypes: '', processingPurpose: '', dataSubjects: '', assetsCovered: '', threatSources: '', systemsInScope: '', frameworkRef: '' });
+  const [f, setF] = useState({ type: 'pia' as AssessmentType, title: '', description: '', dataTypes: '', dataAssetIds: [] as string[], processingPurpose: '', dataSubjects: '', assetsCovered: '', threatSources: '', systemsInScope: '', frameworkRef: '' });
+  const { resolveIds } = useDataAssets();
 
   const pickTemplate = (tpl: typeof TEMPLATES[0]) => {
-    setF({ type: tpl.type, title: tpl.title, description: tpl.description, dataTypes: (tpl as any).dataTypes || '', processingPurpose: (tpl as any).processingPurpose || '', dataSubjects: (tpl as any).dataSubjects || '', assetsCovered: (tpl as any).assetsCovered || '', threatSources: (tpl as any).threatSources || '', systemsInScope: (tpl as any).systemsInScope || '', frameworkRef: (tpl as any).frameworkRef || '' });
+    setF({ type: tpl.type, title: tpl.title, description: tpl.description, dataTypes: (tpl as any).dataTypes || '', dataAssetIds: [], processingPurpose: (tpl as any).processingPurpose || '', dataSubjects: (tpl as any).dataSubjects || '', assetsCovered: (tpl as any).assetsCovered || '', threatSources: (tpl as any).threatSources || '', systemsInScope: (tpl as any).systemsInScope || '', frameworkRef: (tpl as any).frameworkRef || '' });
     setStep('form');
   };
 
   const save = async () => {
     const id = crypto.randomUUID();
-    await db.assessments.add({ id, workspaceId: 'ws-default', type: f.type, title: f.title, description: f.description, status: 'not_started', riskLevel: 'unassessed', dataTypes: f.dataTypes.split(',').map(s => s.trim()).filter(Boolean), processingPurpose: f.processingPurpose, dataSubjects: f.dataSubjects, assetsCovered: f.assetsCovered, threatSources: f.threatSources, systemsInScope: f.systemsInScope, frameworkRef: f.frameworkRef, answers: [], findings: '', recommendations: '', score: 0, createdAt: Date.now(), versions: [] });
+    const resolved = resolveIds(f.dataAssetIds);
+    const legacyDataTypes = resolved.length ? resolved.map((a) => a.name) : f.dataTypes.split(',').map(s => s.trim()).filter(Boolean);
+    await db.assessments.add({ id, workspaceId: 'ws-default', type: f.type, title: f.title, description: f.description, status: 'not_started', riskLevel: 'unassessed', dataTypes: legacyDataTypes, dataAssetIds: f.dataAssetIds, processingPurpose: f.processingPurpose, dataSubjects: f.dataSubjects, assetsCovered: f.assetsCovered, threatSources: f.threatSources, systemsInScope: f.systemsInScope, frameworkRef: f.frameworkRef, answers: [], findings: '', recommendations: '', score: 0, createdAt: Date.now(), versions: [] });
     toast.success('Assessment created'); setOpen(false); setStep('template'); nav(`/assessments/${id}`);
   };
 
-  const reset = () => { setOpen(false); setStep('template'); setF({ type: 'pia', title: '', description: '', dataTypes: '', processingPurpose: '', dataSubjects: '', assetsCovered: '', threatSources: '', systemsInScope: '', frameworkRef: '' }); };
+  const reset = () => { setOpen(false); setStep('template'); setF({ type: 'pia', title: '', description: '', dataTypes: '', dataAssetIds: [], processingPurpose: '', dataSubjects: '', assetsCovered: '', threatSources: '', systemsInScope: '', frameworkRef: '' }); };
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) reset(); else setOpen(true); }}>
@@ -79,8 +84,9 @@ function NewDialog() {
                   <SelectContent><SelectItem value="pia">Privacy Impact Assessment</SelectItem><SelectItem value="risk_assessment">Risk Assessment</SelectItem><SelectItem value="security_checklist">Security Checklist</SelectItem></SelectContent></Select></div>
               <div className="space-y-2"><Label>Title</Label><Input value={f.title} onChange={e => setF({ ...f, title: e.target.value })} placeholder="Assessment title" /></div>
               <div className="space-y-2"><Label>Description</Label><Textarea className="min-h-[80px]" value={f.description} onChange={e => setF({ ...f, description: e.target.value })} /></div>
+              <DataAssetPicker value={f.dataAssetIds} onChange={(dataAssetIds) => setF({ ...f, dataAssetIds })} />
               {f.type === 'pia' && <>
-                <div className="space-y-2"><Label>Data types (comma separated)</Label><Input value={f.dataTypes} onChange={e => setF({ ...f, dataTypes: e.target.value })} /></div>
+                <div className="space-y-2"><Label>Manual Data Types (optional, comma separated)</Label><Input value={f.dataTypes} onChange={e => setF({ ...f, dataTypes: e.target.value })} placeholder="Used if no data assets are selected" /></div>
                 <div className="space-y-2"><Label>Processing purpose</Label><Input value={f.processingPurpose} onChange={e => setF({ ...f, processingPurpose: e.target.value })} /></div>
                 <div className="space-y-2"><Label>Data subjects</Label><Input value={f.dataSubjects} onChange={e => setF({ ...f, dataSubjects: e.target.value })} /></div>
               </>}
@@ -105,6 +111,8 @@ function NewDialog() {
 }
 
 function ACard({ a, onClick }: { a: Assessment; onClick: () => void }) {
+  const { resolveIds } = useDataAssets();
+  const linkedAssets = resolveIds(a.dataAssetIds ?? []);
   const Icon = TYPE_ICONS[a.type];
   return (
     <Card className="cursor-pointer hover:bg-accent/50 transition-colors" onClick={onClick}>
@@ -115,6 +123,15 @@ function ACard({ a, onClick }: { a: Assessment; onClick: () => void }) {
           <p className="text-sm text-muted-foreground mt-0.5">
             {TYPE_SHORT[a.type]}{a.completedAt ? ` · Completed ${new Date(a.completedAt).toLocaleDateString()}` : ''}
           </p>
+          {linkedAssets.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {linkedAssets.map((asset) => (
+                <Link key={asset.id} to="/data-management" onClick={(e) => e.stopPropagation()}>
+                  <Badge variant="secondary" className="text-[10px]">{asset.name}</Badge>
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
         <div className="flex items-center gap-3 shrink-0">
           {a.score > 0 && <span className={cn('text-sm tabular-nums font-semibold', a.score >= 80 ? 'text-emerald-600' : a.score >= 50 ? 'text-amber-600' : 'text-destructive')}>{a.score}%</span>}
