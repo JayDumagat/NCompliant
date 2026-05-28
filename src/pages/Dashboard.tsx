@@ -2,7 +2,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/db/db';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { ArrowRight, Clock, ArrowUpRight } from 'lucide-react';
+import { ArrowRight, Clock, ArrowUpRight, FileText, ClipboardCheck, Database, Zap } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -47,6 +47,10 @@ export default function Dashboard() {
   // Flags
   const hasIssues = overdueTasks > 0 || openIncidents > 0 || expiredTraining > 0 || highRiskAssessments > 0;
 
+  // Empty state — new workspace with no data yet
+  const isEmpty = policies !== undefined && tasks !== undefined && assessments !== undefined
+    && totalPolicies === 0 && totalTasks === 0 && totalAssessments === 0;
+
   return (
     <div className="space-y-12">
       {/* Greeting */}
@@ -54,6 +58,38 @@ export default function Dashboard() {
         <h1 className="text-xl sm:text-2xl font-semibold tracking-tight">Dashboard</h1>
         <p className="text-sm text-muted-foreground mt-1">Your compliance posture at a glance.</p>
       </div>
+
+      {/* Getting-started banner for empty workspaces */}
+      {isEmpty && (
+        <div className="rounded-xl border bg-card p-6 sm:p-8 space-y-6">
+          <div className="flex items-start gap-4">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+              <Zap className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <h2 className="text-base font-semibold">Welcome to your workspace!</h2>
+              <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
+                Your dashboard is ready. Start building your compliance program by adding your first records.
+              </p>
+            </div>
+          </div>
+          <div className="grid sm:grid-cols-3 gap-3">
+            {[
+              { icon: FileText, label: 'Create a Policy', desc: 'Document your compliance policies and assign owners.', to: '/policies' },
+              { icon: Database, label: 'Add a Data Asset', desc: 'Register data assets and classify your data inventory.', to: '/data-management' },
+              { icon: ClipboardCheck, label: 'Run an Assessment', desc: 'Start a PIA, risk assessment, or security checklist.', to: '/assessments' },
+            ].map((item) => (
+              <Link key={item.label} to={item.to} className="group rounded-lg border bg-background p-4 hover:border-primary/50 hover:bg-accent/30 transition-colors">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary mb-3 transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
+                  <item.icon className="h-4 w-4" />
+                </div>
+                <p className="text-sm font-medium">{item.label}</p>
+                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{item.desc}</p>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Overall score — simple number, no donut */}
       <div className="flex flex-col sm:flex-row sm:items-end gap-6 sm:gap-12">

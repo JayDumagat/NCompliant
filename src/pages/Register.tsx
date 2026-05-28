@@ -42,6 +42,7 @@ export default function Register() {
   const navigate = useNavigate();
   const registerUser = useAuthStore((s) => s.register);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const needsOnboarding = useAuthStore((s) => s.needsOnboarding);
   const { theme, setTheme } = useUIStore();
 
   const [showPassword, setShowPassword] = useState(false);
@@ -51,8 +52,8 @@ export default function Register() {
   const [termsChecked, setTermsChecked] = useState(false);
 
   useEffect(() => {
-    if (isAuthenticated) navigate('/dashboard', { replace: true });
-  }, [isAuthenticated, navigate]);
+    if (isAuthenticated) navigate(needsOnboarding ? '/onboard' : '/dashboard', { replace: true });
+  }, [isAuthenticated, needsOnboarding, navigate]);
 
   useEffect(() => {
     if (theme === 'dark') document.documentElement.classList.add('dark');
