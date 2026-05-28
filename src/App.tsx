@@ -5,6 +5,7 @@ import { useAuthStore } from '@/store/authStore';
 import Landing from '@/pages/Landing';
 import Login from '@/pages/Login';
 import Register from '@/pages/Register';
+import Onboarding from '@/pages/Onboarding';
 import Dashboard from '@/pages/Dashboard';
 import Policies from '@/pages/Policies';
 import PolicyDetail from '@/pages/PolicyDetail';
@@ -36,6 +37,9 @@ function App() {
         <Route path="/" element={<RootRedirect />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/onboard" element={<ProtectedRoute />}>
+          <Route index element={<Onboarding />} />
+        </Route>
 
         {/* Protected app routes */}
         <Route element={<ProtectedRoute />}>

@@ -4,8 +4,6 @@ import { Topbar } from './Topbar';
 import { useUIStore } from '@/store/uiStore';
 import { cn } from '@/lib/utils';
 import { Toaster } from '@/components/ui/sonner';
-import { useEffect } from 'react';
-import { seedDatabase } from '@/db/db';
 
 const FULL_WIDTH_ROUTES = ['/data-mapping'];
 
@@ -13,7 +11,6 @@ export function AppLayout() {
   const open = useUIStore((s) => s.sidebarOpen);
   const location = useLocation();
   const isFullWidth = FULL_WIDTH_ROUTES.some(r => location.pathname.startsWith(r));
-  useEffect(() => { seedDatabase(); }, []);
 
   return (
     <div className="min-h-screen bg-background">

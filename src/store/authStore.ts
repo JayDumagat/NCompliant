@@ -12,8 +12,10 @@ interface AuthUser {
 interface AuthState {
   user: AuthUser | null;
   isAuthenticated: boolean;
+  needsOnboarding: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   register: (name: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  completeOnboarding: () => void;
   logout: () => void;
 }
 
@@ -22,6 +24,7 @@ export const useAuthStore = create<AuthState>()(
     (set) => ({
       user: null,
       isAuthenticated: false,
+      needsOnboarding: false,
 
       login: async (email: string, password: string) => {
         try {
@@ -36,6 +39,7 @@ export const useAuthStore = create<AuthState>()(
           set({
             user: { id: user.id, name: user.name, email: user.email, role: user.role },
             isAuthenticated: true,
+            needsOnboarding: false,
           });
           return { success: true };
         } catch {
@@ -64,11 +68,16 @@ export const useAuthStore = create<AuthState>()(
           set({
             user: { id, name: newUser.name, email: newUser.email, role: newUser.role },
             isAuthenticated: true,
+            needsOnboarding: true,
           });
           return { success: true };
         } catch {
           return { success: false, error: 'An unexpected error occurred.' };
         }
+      },
+
+      completeOnboarding: () => {
+        set({ needsOnboarding: false });
       },
 
       logout: () => {
@@ -77,7 +86,11 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'ncompliant-auth-storage',
-      partialize: (state) => ({ user: state.user, isAuthenticated: state.isAuthenticated }),
+      partialize: (state) => ({
+        user: state.user,
+        isAuthenticated: state.isAuthenticated,
+        needsOnboarding: state.needsOnboarding,
+      }),
     }
   )
 );
