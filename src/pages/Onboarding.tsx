@@ -19,6 +19,7 @@ const FEATURE_HIGHLIGHTS = [
 ];
 
 type Step = 'welcome' | 'workspace' | 'done';
+const STEPS: Step[] = ['welcome', 'workspace', 'done'];
 
 export default function Onboarding() {
   const navigate = useNavigate();
@@ -77,17 +78,17 @@ export default function Onboarding() {
       <div className="border-b bg-muted/30">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 py-3">
           <div className="flex items-center gap-3">
-            {(['welcome', 'workspace', 'done'] as Step[]).map((s, i) => (
+            {STEPS.map((s, i) => (
               <div key={s} className="flex items-center gap-3">
                 <div className={cn(
                   'flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold transition-colors',
                   step === s
                     ? 'bg-primary text-primary-foreground'
-                    : (['welcome', 'workspace', 'done'].indexOf(step) > i)
+                    : (STEPS.indexOf(step) > i)
                       ? 'bg-emerald-500 text-white'
                       : 'bg-muted text-muted-foreground',
                 )}>
-                  {(['welcome', 'workspace', 'done'].indexOf(step) > i)
+                  {(STEPS.indexOf(step) > i)
                     ? <CheckCircle2 className="h-3.5 w-3.5" />
                     : i + 1}
                 </div>
