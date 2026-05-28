@@ -47,9 +47,9 @@ export default function Dashboard() {
   // Flags
   const hasIssues = overdueTasks > 0 || openIncidents > 0 || expiredTraining > 0 || highRiskAssessments > 0;
 
-  // Empty state — new workspace with no data yet
-  const isEmpty = policies !== undefined && tasks !== undefined && assessments !== undefined
-    && totalPolicies === 0 && totalTasks === 0 && totalAssessments === 0;
+  // Empty state — new workspace with no data yet (only show after queries have loaded)
+  const isLoading = policies === undefined || tasks === undefined || assessments === undefined;
+  const isEmpty = !isLoading && totalPolicies === 0 && totalTasks === 0 && totalAssessments === 0;
 
   return (
     <div className="space-y-12">

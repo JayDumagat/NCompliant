@@ -328,6 +328,8 @@ export interface PIA {
   completedAt?: number;
 }
 
+export const WS_DEFAULT_ID = 'ws-default';
+
 const db = new Dexie('NCompliantDB') as Dexie & {
   workspaces: EntityTable<Workspace, 'id'>;
   policies: EntityTable<Policy, 'id'>;

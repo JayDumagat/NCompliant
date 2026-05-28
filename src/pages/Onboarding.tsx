@@ -8,21 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuthStore } from '@/store/authStore';
-import { db } from '@/db/db';
+import { db, WS_DEFAULT_ID } from '@/db/db';
 import { cn } from '@/lib/utils';
-
-const INDUSTRY_OPTIONS = [
-  'Financial Services',
-  'Healthcare',
-  'Technology',
-  'Retail & E-commerce',
-  'Manufacturing',
-  'Education',
-  'Government',
-  'Legal & Professional Services',
-  'Non-Profit',
-  'Other',
-];
 
 const FEATURE_HIGHLIGHTS = [
   { icon: FileText, title: 'Policy Management', desc: 'Create and maintain compliance policies with version history.' },
@@ -40,7 +27,6 @@ export default function Onboarding() {
 
   const [step, setStep] = useState<Step>('welcome');
   const [workspaceName, setWorkspaceName] = useState('');
-  const [industry, setIndustry] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -56,11 +42,11 @@ export default function Onboarding() {
     setSaving(true);
     setError('');
     try {
-      const existing = await db.workspaces.get('ws-default');
+      const existing = await db.workspaces.get(WS_DEFAULT_ID);
       if (existing) {
-        await db.workspaces.update('ws-default', { name });
+        await db.workspaces.update(WS_DEFAULT_ID, { name });
       } else {
-        await db.workspaces.add({ id: 'ws-default', name, createdAt: Date.now() });
+        await db.workspaces.add({ id: WS_DEFAULT_ID, name, createdAt: Date.now() });
       }
       setStep('done');
     } catch {
@@ -167,7 +153,7 @@ export default function Onboarding() {
                 </div>
                 <h2 className="text-xl sm:text-2xl font-bold tracking-tight">Set up your workspace</h2>
                 <p className="text-sm text-muted-foreground">
-                  Tell us a bit about your organization so we can personalize your experience.
+                  Give your workspace a name so it's easy to identify throughout the app.
                 </p>
               </div>
 
@@ -193,26 +179,11 @@ export default function Onboarding() {
                   <p className="text-xs text-muted-foreground">This will appear throughout the app.</p>
                 </div>
 
-                <div className="space-y-1.5">
-                  <Label htmlFor="industry" className="text-xs font-medium">Industry (optional)</Label>
-                  <select
-                    id="industry"
-                    value={industry}
-                    onChange={(e) => setIndustry(e.target.value)}
-                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                  >
-                    <option value="">Select an industry...</option>
-                    {INDUSTRY_OPTIONS.map((opt) => (
-                      <option key={opt} value={opt}>{opt}</option>
-                    ))}
-                  </select>
-                </div>
-
                 <div className="flex gap-3 pt-2">
                   <Button type="button" variant="outline" onClick={() => setStep('welcome')} className="flex-1">
                     Back
                   </Button>
-                  <Button type="submit" className="flex-2 gap-2" disabled={saving}>
+                  <Button type="submit" className="flex-1 gap-2" disabled={saving}>
                     {saving ? 'Saving…' : (
                       <>
                         Continue
