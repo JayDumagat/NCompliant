@@ -129,7 +129,7 @@ export function exportAssessmentPDF(a: Assessment) {
   const tot=a.answers.length;
 
   // Build type-specific body
-  let body = '';
+  let body: string | undefined;
 
   if (a.type === 'pia') {
     // NPC PIA Toolkit format
@@ -257,6 +257,8 @@ export function exportAssessmentPDF(a: Assessment) {
       </tbody>
     </table>
   `;
+
+  body ??= '<p>No assessment details available.</p>';
 
   const html = `
   <div class="cover">

@@ -102,7 +102,7 @@ export default function TaskTemplates() {
   const templates = useLiveQuery(() => db.taskTemplates.toArray(), []);
   const nav = useNavigate();
 
-  const useTemplate = async (t: TaskTemplate) => {
+  const applyTemplate = async (t: TaskTemplate) => {
     await db.tasks.add({
       id: crypto.randomUUID(), workspaceId: 'ws-default', title: t.title,
       description: t.steps.map((s, i) => `${i + 1}. ${s.text}`).join('\n'),
@@ -160,7 +160,7 @@ export default function TaskTemplates() {
               )}
             </CardContent>
             <div className="flex items-center gap-1 border-t px-4 py-3">
-              <Button variant="outline" size="sm" className="gap-1.5 flex-1" onClick={() => useTemplate(t)}><Play className="h-3.5 w-3.5" />Use</Button>
+              <Button variant="outline" size="sm" className="gap-1.5 flex-1" onClick={() => applyTemplate(t)}><Play className="h-3.5 w-3.5" />Use</Button>
               <TemplateDialog template={t} trigger={<Button variant="ghost" size="icon" className="h-8 w-8"><Pencil className="h-3.5 w-3.5" /></Button>} onDone={() => {}} />
               <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => duplicate(t)}><Copy className="h-3.5 w-3.5" /></Button>
               <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => del(t.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
