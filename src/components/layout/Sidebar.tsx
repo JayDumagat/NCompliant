@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, FileText, CheckSquare, ClipboardCheck, Settings, PanelLeftClose, ListChecks, LayoutTemplate, GraduationCap, AlertTriangle, BarChart3, FileBarChart, Bell, MoreHorizontal, Zap, Building2, Database, GitBranch } from 'lucide-react';
+import { LayoutDashboard, FileText, CheckSquare, ClipboardCheck, Settings, PanelLeftClose, ListChecks, LayoutTemplate, GraduationCap, AlertTriangle, BarChart3, FileBarChart, Bell, MoreHorizontal, Zap, Building2, Database, GitBranch, CalendarClock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useUIStore } from '@/store/uiStore';
 import { Button } from '@/components/ui/button';
@@ -21,6 +21,7 @@ const NAV_ITEMS = [
   { icon: Building2, label: 'Vendors', to: '/vendors' },
   { icon: Database, label: 'Data', to: '/data-management' },
   { icon: GitBranch, label: 'Data Map', to: '/data-mapping' },
+  { icon: CalendarClock, label: 'Reminders', to: '/reminders' },
   { icon: Bell, label: 'Updates', to: '/updates' },
 ];
 
@@ -100,6 +101,7 @@ const MORE_ITEMS = [
   { icon: Building2, label: 'Vendors', to: '/vendors' },
   { icon: Database, label: 'Data', to: '/data-management' },
   { icon: GitBranch, label: 'Data Map', to: '/data-mapping' },
+  { icon: CalendarClock, label: 'Reminders', to: '/reminders' },
   { icon: Bell, label: 'Updates', to: '/updates' },
   { icon: Settings, label: 'Settings', to: '/settings' },
 ];

@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { z } from 'zod';
 import { Zap, Eye, EyeOff, Sun, Moon, Monitor, ArrowRight, Loader2, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,17 +10,13 @@ import { useAuthStore } from '@/store/authStore';
 import { useUIStore } from '@/store/uiStore';
 import { cn } from '@/lib/utils';
 
-const registerSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters.'),
-  email: z.string().email('Please enter a valid email.'),
-  password: z.string().min(8, 'Password must be at least 8 characters.'),
-  confirmPassword: z.string(),
-  terms: z.boolean(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: 'Passwords do not match.',
-  path: ['confirmPassword'],
-});
-type RegisterForm = z.infer<typeof registerSchema>;
+type RegisterForm = {
+  name: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+  terms: boolean;
+};
 
 function getPasswordStrength(pw: string): { score: number; label: string; color: string } {
   let score = 0;
