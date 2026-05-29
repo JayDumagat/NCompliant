@@ -27,6 +27,7 @@ interface ReminderItem {
 }
 
 const DAY = 24 * 60 * 60 * 1000;
+const CALENDAR_CELLS = 42;
 
 function toDateKey(timestamp: number) {
   const d = new Date(timestamp);
@@ -34,6 +35,11 @@ function toDateKey(timestamp: number) {
   const m = String(d.getMonth() + 1).padStart(2, '0');
   const day = String(d.getDate()).padStart(2, '0');
   return `${y}-${m}-${day}`;
+}
+
+function parseDateKeyToLocalDate(key: string) {
+  const [year, month, day] = key.split('-').map(Number);
+  return new Date(year, (month || 1) - 1, day || 1);
 }
 
 function ReminderDialog({ onDone }: { onDone: () => void }) {
@@ -160,6 +166,7 @@ export default function Reminders() {
     return new Date(now.getFullYear(), now.getMonth(), 1);
   });
   const [selectedDate, setSelectedDate] = useState(() => toDateKey(Date.now()));
+  const [todayKey] = useState(() => toDateKey(Date.now()));
 
   const reminders = useMemo<ReminderItem[]>(() => {
     const taskItems = (tasks ?? [])
@@ -243,7 +250,7 @@ export default function Reminders() {
     const firstOfMonth = new Date(year, month, 1);
     const firstWeekday = firstOfMonth.getDay();
     const start = new Date(year, month, 1 - firstWeekday);
-    const cells = Array.from({ length: 42 }, (_, i) => {
+    const cells = Array.from({ length: CALENDAR_CELLS }, (_, i) => {
       const date = new Date(start.getTime() + i * DAY);
       return {
         date,
@@ -295,7 +302,7 @@ export default function Reminders() {
               {monthDays.map((cell) => {
                 const dayItems = remindersByDate.get(cell.key) ?? [];
                 const isSelected = selectedDate === cell.key;
-                const isToday = cell.key === toDateKey(Date.now());
+                const isToday = cell.key === todayKey;
                 return (
                   <button
                     key={cell.key}
@@ -325,7 +332,7 @@ export default function Reminders() {
           <Card>
             <CardHeader>
               <CardTitle className="text-base">
-                {new Date(selectedDate).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+                {parseDateKeyToLocalDate(selectedDate).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">

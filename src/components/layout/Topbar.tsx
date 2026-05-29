@@ -14,13 +14,18 @@ import {
 import { useAuthStore } from '@/store/authStore';
 import { useNavigate } from 'react-router-dom';
 
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+}
+
 export function Topbar() {
   const { sidebarOpen, toggleSidebar, theme, setTheme } = useUIStore();
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
   const navigate = useNavigate();
   const [offline, setOffline] = useState(!navigator.onLine);
-  const [installPrompt, setInstallPrompt] = useState<Event | null>(null);
+  const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
 
   useEffect(() => {
     const on = () => setOffline(false);
@@ -40,14 +45,14 @@ export function Topbar() {
   }, [theme]);
 
   useEffect(() => {
-    const handler = (e: Event) => { e.preventDefault(); setInstallPrompt(e); };
+    const handler = (e: Event) => { e.preventDefault(); setInstallPrompt(e as BeforeInstallPromptEvent); };
     window.addEventListener('beforeinstallprompt', handler);
     return () => window.removeEventListener('beforeinstallprompt', handler);
   }, []);
 
   const handleInstall = async () => {
     if (!installPrompt) return;
-    (installPrompt as any).prompt();
+    await installPrompt.prompt();
     setInstallPrompt(null);
   };
 
@@ -57,8 +62,10 @@ export function Topbar() {
   };
 
   const ThemeIcon = theme === 'dark' ? Moon : theme === 'system' ? Monitor : Sun;
-  const initials = (user?.name || user?.email || 'U')
-    .split(' ')
+  const baseIdentity = user?.name?.trim() || user?.email?.split('@')[0] || 'User';
+  const initials = baseIdentity
+    .split(/\s+|[._-]+/)
+    .filter(Boolean)
     .map((part) => part[0])
     .join('')
     .slice(0, 2)
