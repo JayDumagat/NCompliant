@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 import { exportPolicyPDF } from '@/lib/exportPdf';
 import { diffTokens } from '@/lib/wordDiff';
 import { useDataAssets } from '@/hooks/useDataAssets';
+import { EmptyState } from '@/components/ui/empty-state';
 
 const SL: Record<string, string> = { draft: 'Draft', active: 'Active', under_review: 'Review', archived: 'Archived' };
 const RF: Record<string, string> = { none: 'No schedule', monthly: 'Monthly', quarterly: 'Quarterly', semi_annual: 'Semi-Annual', annual: 'Annual' };
@@ -90,7 +91,7 @@ export default function PolicyDetail() {
             <Button variant="ghost" size="sm" className="gap-1.5 text-xs h-8" onClick={() => exportPolicyPDF(policy)}><FileText className="h-3.5 w-3.5" />PDF</Button>
             <Button variant="ghost" size="sm" className="gap-1.5 text-xs h-8" onClick={exportJSON}><Download className="h-3.5 w-3.5" />JSON</Button>
             <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-              <DialogTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive"><Trash2 className="h-3.5 w-3.5" /></Button></DialogTrigger>
+              <DialogTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" aria-label={`Delete policy ${policy.title}`}><Trash2 className="h-3.5 w-3.5" /></Button></DialogTrigger>
               <DialogContent className="sm:max-w-sm">
                 <DialogHeader><DialogTitle>Delete Policy</DialogTitle></DialogHeader>
                 <p className="text-sm text-muted-foreground py-2">Delete "{policy.title}"? This cannot be undone.</p>
@@ -193,7 +194,7 @@ export default function PolicyDetail() {
         </TabsContent>
 
         <TabsContent value="history" className="mt-6">
-          {!policy.versions?.length ? <p className="text-sm text-muted-foreground py-8 text-center">No version history yet.</p> : (
+          {!policy.versions?.length ? <EmptyState icon={FileText} title="No version history yet" description="Publish updates to start building a revision trail." className="py-8" /> : (
             <div className="space-y-4">
               <div className="flex justify-end">
                 <Dialog
@@ -217,7 +218,7 @@ export default function PolicyDetail() {
                       <div className="space-y-2">
                         <p className="text-xs text-muted-foreground uppercase tracking-wider">Base</p>
                         <Select value={leftVersion} onValueChange={setLeftVersion}>
-                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectTrigger id="policy-compare-left"><SelectValue /></SelectTrigger>
                           <SelectContent>
                             {snapshots.map((v) => <SelectItem key={`left-${v.version}`} value={String(v.version)}>v{v.version} · {v.note}</SelectItem>)}
                           </SelectContent>
@@ -226,7 +227,7 @@ export default function PolicyDetail() {
                       <div className="space-y-2">
                         <p className="text-xs text-muted-foreground uppercase tracking-wider">Compare</p>
                         <Select value={rightVersion} onValueChange={setRightVersion}>
-                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectTrigger id="policy-compare-right"><SelectValue /></SelectTrigger>
                           <SelectContent>
                             {snapshots.map((v) => <SelectItem key={`right-${v.version}`} value={String(v.version)}>v{v.version} · {v.note}</SelectItem>)}
                           </SelectContent>

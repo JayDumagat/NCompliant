@@ -1,15 +1,14 @@
 import { useState, useEffect } from 'react';
 import { db } from '@/db/db';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Plus, Check, FileText, Shield, Scale, AlertTriangle, Laptop, Umbrella } from 'lucide-react';
+import { Plus, Check, FileText, Shield, Scale, AlertTriangle, Laptop, Umbrella, LayoutTemplate, SquarePen, ChevronLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { DataAssetPicker } from '@/components/DataAssetPicker';
@@ -59,7 +58,8 @@ function loadSession(): { step: number; form: WizardState } | null {
 export function PolicyWizard() {
   const saved = loadSession();
   const [open, setOpen] = useState(false);
-  const [showTemplates, setShowTemplates] = useState(true);
+  const [mode, setMode] = useState<'choose' | 'templates' | 'form'>(saved ? 'form' : 'choose');
+  const [entryMode, setEntryMode] = useState<'templates' | 'manual'>('manual');
   const [step, setStep] = useState(saved?.step ?? 0);
   const [f, setF] = useState<WizardState>(saved?.form ?? { ...emptyState });
   const [hasSaved] = useState(!!saved);
@@ -89,15 +89,44 @@ export function PolicyWizard() {
     toast.success('Policy created'); reset();
   };
 
-  const reset = () => { setOpen(false); setStep(0); setShowTemplates(true); setF({ ...emptyState }); sessionStorage.removeItem(SESSION_KEY); };
+  const reset = () => { setOpen(false); setStep(0); setMode('choose'); setEntryMode('manual'); setF({ ...emptyState }); sessionStorage.removeItem(SESSION_KEY); };
 
   const handleOpen = (v: boolean) => {
-    if (v) { const s = loadSession(); if (s) { setStep(s.step); setShowTemplates(false); setF(s.form); } setOpen(true); } else reset();
+    if (v) {
+      const s = loadSession();
+      if (s) {
+        setStep(s.step);
+        setF(s.form);
+        setMode('form');
+      } else {
+        setMode('choose');
+        setEntryMode('manual');
+        setStep(0);
+        setF({ ...emptyState });
+      }
+      setOpen(true);
+    } else reset();
   };
 
   const pickTemplate = (tpl: typeof POLICY_TEMPLATES[0]) => {
     setF({ ...emptyState, title: tpl.title, category: tpl.category, purpose: tpl.purpose, scope: tpl.scope, requirements: tpl.requirements });
-    setShowTemplates(false);
+    setEntryMode('templates');
+    setStep(0);
+    setMode('form');
+  };
+
+  const startManual = () => {
+    setF({ ...emptyState });
+    setStep(0);
+    setEntryMode('manual');
+    setMode('form');
+  };
+
+  const startTemplates = () => {
+    setF({ ...emptyState });
+    setStep(0);
+    setEntryMode('templates');
+    setMode('templates');
   };
 
   const exportJSON = () => {
@@ -115,134 +144,203 @@ export function PolicyWizard() {
           {hasSaved && <Badge variant="secondary" className="ml-1 text-xs">Draft</Badge>}
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-xl">
-        {showTemplates ? (
-          <>
-            <DialogHeader><DialogTitle>Create Policy</DialogTitle></DialogHeader>
-            <div className="space-y-4 py-2">
-              <p className="text-sm text-muted-foreground">Choose a template or start from scratch.</p>
-              <div className="grid gap-2 sm:grid-cols-2">
-                {POLICY_TEMPLATES.map(tpl => (
-                  <button key={tpl.title} onClick={() => pickTemplate(tpl)} className="flex items-start gap-3 rounded-lg border p-3 text-left hover:bg-accent/50 transition-colors">
-                    <div className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-md mt-0.5', tpl.color)}>
-                      <tpl.icon className="h-4 w-4" />
-                    </div>
-                    <div className="min-w-0"><p className="text-sm font-medium leading-tight">{tpl.title}</p><p className="text-xs text-muted-foreground mt-0.5">{tpl.category}</p></div>
-                  </button>
-                ))}
-              </div>
-              <Button variant="outline" className="w-full gap-2" onClick={() => setShowTemplates(false)}><Plus className="h-4 w-4" />Start from Scratch</Button>
-            </div>
-          </>
-        ) : (
-          <>
-        <DialogHeader><DialogTitle>Create Policy</DialogTitle></DialogHeader>
-
-        {/* Step indicator */}
-        <div className="space-y-3">
-          <div className="flex justify-between">
-            {STEPS.map((s, i) => (
-              <button key={s} onClick={() => i < step && setStep(i)}
-                className={`text-sm transition-colors flex items-center gap-1.5 ${i <= step ? 'font-medium text-foreground' : 'text-muted-foreground'} ${i < step ? 'cursor-pointer hover:text-primary' : 'cursor-default'}`}>
-                <span className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-xs ${i < step ? 'bg-primary text-primary-foreground' : i === step ? 'bg-primary/10 text-primary border border-primary/30' : 'bg-muted text-muted-foreground'}`}>
-                  {i < step ? <Check className="h-3.5 w-3.5" /> : i + 1}
-                </span>
-                <span className="hidden sm:inline">{s}</span>
-              </button>
-            ))}
-          </div>
-          <Progress value={((step + 1) / STEPS.length) * 100} className="h-1.5" />
-        </div>
-
-        <div className="min-h-[240px] py-2">
-          {step === 0 && (
-            <div className="space-y-4">
-              <div className="space-y-2"><Label>Title *</Label><Input value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} placeholder="e.g., Data Privacy Policy" /></div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2"><Label>Category *</Label>
-                  <Select value={f.category} onValueChange={(v) => setF({ ...f, category: v })}>
-                    <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-                    <SelectContent><SelectItem value="Privacy">Privacy</SelectItem><SelectItem value="Security">Security</SelectItem><SelectItem value="Compliance">Compliance</SelectItem><SelectItem value="Operations">Operations</SelectItem><SelectItem value="Risk Management">Risk Management</SelectItem></SelectContent>
-                  </Select></div>
-                <div className="space-y-2"><Label>Owner *</Label><Input value={f.owner} onChange={(e) => setF({ ...f, owner: e.target.value })} placeholder="Legal Team" /></div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2"><Label>Department</Label><Input value={f.department} onChange={(e) => setF({ ...f, department: e.target.value })} placeholder="Legal" /></div>
-                <div className="space-y-2"><Label>Tags (comma separated)</Label><Input value={f.tags} onChange={(e) => setF({ ...f, tags: e.target.value })} placeholder="privacy, NPC" /></div>
-              </div>
-              <DataAssetPicker value={f.dataAssetIds} onChange={(dataAssetIds) => setF({ ...f, dataAssetIds })} />
-            </div>
-          )}
-
-          {step === 1 && (
-            <div className="space-y-4">
-              <div className="space-y-2"><Label>Purpose</Label><Textarea className="min-h-[100px]" value={f.purpose} onChange={(e) => setF({ ...f, purpose: e.target.value })} placeholder="What is the objective of this policy?" /></div>
-              <div className="space-y-2"><Label>Scope</Label><Textarea className="min-h-[80px]" value={f.scope} onChange={(e) => setF({ ...f, scope: e.target.value })} placeholder="Who and what does this policy cover?" /></div>
-              <div className="space-y-2"><Label>Full Content</Label><Textarea className="min-h-[100px]" value={f.content} onChange={(e) => setF({ ...f, content: e.target.value })} placeholder="Detailed policy content..." /></div>
-            </div>
-          )}
-
-          {step === 2 && (
+      <DialogContent className="w-[min(100vw-1rem,1440px)] max-w-none h-[calc(100vh-1rem)] overflow-hidden p-0 sm:rounded-2xl">
+        <div className="grid h-full min-h-0 lg:grid-cols-[260px_1fr]">
+          <aside className="hidden min-h-0 flex-col border-r border-border/30 bg-background/80 p-5 lg:flex">
             <div className="space-y-3">
-              <div className="space-y-2">
-                <Label>Requirements & Controls</Label>
-                <p className="text-sm text-muted-foreground">List key requirements, one per line.</p>
-                <Textarea className="min-h-[220px] font-mono" value={f.requirements} onChange={(e) => setF({ ...f, requirements: e.target.value })}
-                  placeholder={"Obtain explicit consent before processing\nImplement appropriate security measures\nReport breaches within 72 hours\nAppoint a Data Protection Officer"} />
+              <div className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <LayoutTemplate className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-lg font-semibold tracking-tight">Create Policy</p>
+                <p className="text-sm text-muted-foreground">Use a starter or build from scratch in a full-screen, step-by-step editor.</p>
               </div>
             </div>
-          )}
 
-          {step === 3 && (
-            <div className="space-y-4">
-              <div className="space-y-2"><Label>Review Frequency</Label>
-                <Select value={f.reviewFrequency} onValueChange={(v) => setF({ ...f, reviewFrequency: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent><SelectItem value="none">No schedule</SelectItem><SelectItem value="monthly">Monthly</SelectItem><SelectItem value="quarterly">Quarterly</SelectItem><SelectItem value="semi_annual">Semi-Annual</SelectItem><SelectItem value="annual">Annual</SelectItem></SelectContent>
-                </Select></div>
-              <div className="space-y-2"><Label>Next Review Date</Label><Input type="date" value={f.nextReviewDate} onChange={(e) => setF({ ...f, nextReviewDate: e.target.value })} /></div>
+            {mode === 'form' ? (
+              <div className="mt-8 space-y-3">
+                <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Progress</p>
+                <div className="space-y-1">
+                  {STEPS.map((label, index) => {
+                    const active = index === step;
+                    const complete = index < step;
+                    return (
+                      <button key={label} onClick={() => complete && setStep(index)} className={cn('flex w-full items-center gap-3 border-l-2 px-3 py-2.5 text-left transition-colors', active ? 'border-primary bg-primary/5' : 'border-transparent hover:bg-accent/20', !complete && 'opacity-75')}>
+                        <span className={cn('flex h-8 w-8 items-center justify-center rounded-full text-xs font-medium ring-1 ring-inset', complete ? 'bg-foreground text-background ring-foreground/10' : active ? 'bg-primary/10 text-primary ring-primary/20' : 'bg-muted text-muted-foreground ring-border/70')}>
+                          {complete ? <Check className="h-4 w-4" /> : index + 1}
+                        </span>
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium">{label}</p>
+                          <p className="text-xs text-muted-foreground">{index === 0 ? 'Basic details' : index === 1 ? 'Policy language' : index === 2 ? 'Controls' : index === 3 ? 'Schedule' : 'Final review'}</p>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : (
+              <div className="mt-8 border-l border-border/30 pl-4 text-sm text-muted-foreground">
+                <p className="font-medium text-foreground">Full screen editor</p>
+                <p className="mt-2 leading-relaxed">Select a starter or manual mode, then complete the policy in a focused workflow with the form on the right.</p>
+              </div>
+            )}
+          </aside>
+
+          <div className="flex min-h-0 flex-col">
+            <div className="flex items-center justify-between border-b border-border/60 px-6 py-4 lg:px-8">
+              <div>
+                <p className="text-sm text-muted-foreground">Policy Builder</p>
+                <h2 className="text-lg font-semibold tracking-tight">
+                  {mode === 'choose' ? 'Choose creation mode' : mode === 'templates' ? 'Pick a starter' : `Step ${step + 1} of ${STEPS.length}`}
+                </h2>
+              </div>
+              <div />
             </div>
-          )}
 
-          {step === 4 && (
-            <div className="space-y-4">
-              <div className="rounded-lg border p-5 space-y-3">
-                {[
-                  { label: 'Title', value: f.title },
-                  { label: 'Category', value: f.category },
-                  { label: 'Owner', value: f.owner },
-                  { label: 'Department', value: f.department || '—' },
-                  { label: 'Tags', value: f.tags || '—' },
-                  { label: 'Linked Data Assets', value: f.dataAssetIds.length ? `${f.dataAssetIds.length} linked` : '—' },
-                  { label: 'Review', value: f.reviewFrequency === 'none' ? 'No schedule' : f.reviewFrequency.replace('_', '-') },
-                  { label: 'Content', value: `${(f.content || f.purpose || '').length} characters` },
-                  { label: 'Requirements', value: f.requirements ? `${f.requirements.split('\n').filter(Boolean).length} items` : '—' },
-                ].map((row, i) => (
-                  <div key={row.label}>
-                    {i > 0 && <Separator className="mb-3" />}
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">{row.label}</span>
-                      <span className="text-sm font-medium text-right max-w-[250px] truncate">{row.value}</span>
+            <div className="min-h-0 flex-1 overflow-y-auto px-6 py-6 lg:px-8">
+              {mode === 'choose' ? (
+                <div className="mx-auto grid w-full max-w-5xl gap-4 py-8 sm:grid-cols-2">
+                  <button onClick={startTemplates} className="group flex min-h-[180px] flex-col items-start justify-between gap-6 rounded-2xl border border-border/30 bg-background/90 p-5 text-left transition-all hover:border-primary/40 hover:bg-accent/10">
+                    <div className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary transition-transform group-hover:scale-105">
+                      <LayoutTemplate className="h-5 w-5" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <p className="text-lg font-semibold tracking-tight">Use Templates</p>
+                      <p className="text-sm leading-relaxed text-muted-foreground">Start from a policy starter and customize it step by step.</p>
+                    </div>
+                  </button>
+                  <button onClick={startManual} className="group flex min-h-[180px] flex-col items-start justify-between gap-6 rounded-2xl border border-border/30 bg-background/90 p-5 text-left transition-all hover:border-primary/40 hover:bg-accent/10">
+                    <div className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600 transition-transform group-hover:scale-105">
+                      <SquarePen className="h-5 w-5" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <p className="text-lg font-semibold tracking-tight">Input Manually</p>
+                      <p className="text-sm leading-relaxed text-muted-foreground">Jump straight into the policy form with the stepper on the left.</p>
+                    </div>
+                  </button>
+                </div>
+              ) : mode === 'templates' ? (
+                <div className="space-y-5">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Choose a starter</p>
+                      <p className="text-base font-medium">Pick a template or switch to manual input.</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button variant="outline" onClick={() => setMode('choose')}><ChevronLeft className="h-4 w-4" />Back</Button>
+                      <Button onClick={startManual}>Manual Input</Button>
                     </div>
                   </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
+                  <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                    {POLICY_TEMPLATES.map((tpl) => (
+                      <button key={tpl.title} onClick={() => pickTemplate(tpl)} className="flex items-start gap-3 rounded-2xl border border-border/40 bg-background p-4 text-left transition-colors hover:bg-accent/15">
+                        <div className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-xl mt-0.5', tpl.color)}>
+                          <tpl.icon className="h-5 w-5" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium leading-tight">{tpl.title}</p>
+                          <p className="mt-1 text-xs text-muted-foreground">{tpl.category}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="w-full space-y-6">
+                  <div className="space-y-6">
+                    {step === 0 && (
+                      <div className="space-y-6">
+                        <div className="space-y-2"><Label htmlFor="policy-title">Title *</Label><Input id="policy-title" value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} placeholder="e.g., Data Privacy Policy" /></div>
+                        <div className="grid gap-4 md:grid-cols-2">
+                          <div className="space-y-2"><Label htmlFor="policy-category">Category *</Label>
+                            <Select value={f.category} onValueChange={(v) => setF({ ...f, category: v })}>
+                              <SelectTrigger id="policy-category"><SelectValue placeholder="Select" /></SelectTrigger>
+                              <SelectContent><SelectItem value="Privacy">Privacy</SelectItem><SelectItem value="Security">Security</SelectItem><SelectItem value="Compliance">Compliance</SelectItem><SelectItem value="Operations">Operations</SelectItem><SelectItem value="Risk Management">Risk Management</SelectItem></SelectContent>
+                            </Select></div>
+                          <div className="space-y-2"><Label htmlFor="policy-owner">Owner *</Label><Input id="policy-owner" value={f.owner} onChange={(e) => setF({ ...f, owner: e.target.value })} placeholder="Legal Team" /></div>
+                        </div>
+                        <div className="grid gap-4 md:grid-cols-2">
+                          <div className="space-y-2"><Label htmlFor="policy-department">Department</Label><Input id="policy-department" value={f.department} onChange={(e) => setF({ ...f, department: e.target.value })} placeholder="Legal" /></div>
+                          <div className="space-y-2"><Label htmlFor="policy-tags">Tags (comma separated)</Label><Input id="policy-tags" value={f.tags} onChange={(e) => setF({ ...f, tags: e.target.value })} placeholder="privacy, NPC" /></div>
+                        </div>
+                        <DataAssetPicker value={f.dataAssetIds} onChange={(dataAssetIds) => setF({ ...f, dataAssetIds })} />
+                      </div>
+                    )}
 
-        <div className="flex justify-between pt-2">
-          <div className="flex gap-2">
-            {step === 0 ? <Button variant="ghost" onClick={() => setShowTemplates(true)}>← Templates</Button> : <Button variant="outline" onClick={() => setStep((s) => Math.max(s - 1, 0))}>Back</Button>}
-            {step === 4 && <Button variant="outline" onClick={exportJSON}>Export JSON</Button>}
+                    {step === 1 && (
+                      <div className="space-y-6">
+                        <div className="space-y-2"><Label htmlFor="policy-purpose">Purpose</Label><Textarea id="policy-purpose" className="min-h-[120px]" value={f.purpose} onChange={(e) => setF({ ...f, purpose: e.target.value })} placeholder="What is the objective of this policy?" /></div>
+                          <div className="space-y-2"><Label htmlFor="policy-scope">Scope</Label><Textarea id="policy-scope" className="min-h-[100px]" value={f.scope} onChange={(e) => setF({ ...f, scope: e.target.value })} placeholder="Who and what does this policy cover?" /></div>
+                          <div className="space-y-2"><Label htmlFor="policy-content">Full Content</Label><Textarea id="policy-content" className="min-h-[120px]" value={f.content} onChange={(e) => setF({ ...f, content: e.target.value })} placeholder="Detailed policy content..." /></div>
+                      </div>
+                    )}
+
+                    {step === 2 && (
+                      <div className="space-y-6">
+                        <div className="space-y-2">
+                          <Label htmlFor="policy-requirements">Requirements & Controls</Label>
+                          <p className="text-sm text-muted-foreground">List key requirements, one per line.</p>
+                          <Textarea id="policy-requirements" className="min-h-[260px] font-mono" value={f.requirements} onChange={(e) => setF({ ...f, requirements: e.target.value })}
+                            placeholder={"Obtain explicit consent before processing\nImplement appropriate security measures\nReport breaches within 72 hours\nAppoint a Data Protection Officer"} />
+                        </div>
+                      </div>
+                    )}
+
+                    {step === 3 && (
+                      <div className="space-y-6">
+                        <div className="space-y-2"><Label htmlFor="policy-reviewFrequency">Review Frequency</Label>
+                          <Select value={f.reviewFrequency} onValueChange={(v) => setF({ ...f, reviewFrequency: v })}>
+                            <SelectTrigger id="policy-reviewFrequency"><SelectValue /></SelectTrigger>
+                            <SelectContent><SelectItem value="none">No schedule</SelectItem><SelectItem value="monthly">Monthly</SelectItem><SelectItem value="quarterly">Quarterly</SelectItem><SelectItem value="semi_annual">Semi-Annual</SelectItem><SelectItem value="annual">Annual</SelectItem></SelectContent>
+                          </Select></div>
+                        <div className="space-y-2"><Label htmlFor="policy-nextReviewDate">Next Review Date</Label><Input id="policy-nextReviewDate" type="date" value={f.nextReviewDate} onChange={(e) => setF({ ...f, nextReviewDate: e.target.value })} /></div>
+                      </div>
+                    )}
+
+                    {step === 4 && (
+                      <div className="space-y-6">
+                        <div className="space-y-3">
+                          {[
+                            { label: 'Title', value: f.title },
+                            { label: 'Category', value: f.category },
+                            { label: 'Owner', value: f.owner },
+                            { label: 'Department', value: f.department || '—' },
+                            { label: 'Tags', value: f.tags || '—' },
+                            { label: 'Linked Data Assets', value: f.dataAssetIds.length ? `${f.dataAssetIds.length} linked` : '—' },
+                            { label: 'Review', value: f.reviewFrequency === 'none' ? 'No schedule' : f.reviewFrequency.replace('_', '-') },
+                            { label: 'Content', value: `${(f.content || f.purpose || '').length} characters` },
+                            { label: 'Requirements', value: f.requirements ? `${f.requirements.split('\n').filter(Boolean).length} items` : '—' },
+                          ].map((row, index) => (
+                            <div key={row.label}>
+                              {index > 0 && <Separator className="mb-3" />}
+                              <div className="flex justify-between items-center gap-3">
+                                <span className="text-sm text-muted-foreground">{row.label}</span>
+                                <span className="max-w-[320px] truncate text-right text-sm font-medium">{row.value}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex flex-col-reverse gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex gap-2">
+                      {step === 0
+                        ? <Button variant="outline" onClick={() => setMode(entryMode === 'templates' ? 'templates' : 'choose')}><ChevronLeft className="h-4 w-4" />{entryMode === 'templates' ? 'Templates' : 'Options'}</Button>
+                        : <Button variant="outline" onClick={() => setStep((s) => Math.max(s - 1, 0))}>Back</Button>}
+                      {step === 4 && <Button variant="outline" onClick={exportJSON}>Export JSON</Button>}
+                    </div>
+                    {step === 4
+                      ? <Button onClick={save} disabled={!canNext()}>Create Policy</Button>
+                      : <Button onClick={() => setStep((s) => s + 1)} disabled={!canNext()}>Continue</Button>
+                    }
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
-          {step === 4
-            ? <Button onClick={save} disabled={!canNext()}>Create Policy</Button>
-            : <Button onClick={() => setStep((s) => s + 1)} disabled={!canNext()}>Continue</Button>
-          }
         </div>
-          </>
-        )}
       </DialogContent>
     </Dialog>
   );

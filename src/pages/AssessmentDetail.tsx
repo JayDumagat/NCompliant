@@ -19,6 +19,7 @@ import { cn } from '@/lib/utils';
 import { exportAssessmentPDF } from '@/lib/exportPdf';
 import { diffTokens } from '@/lib/wordDiff';
 import { useDataAssets } from '@/hooks/useDataAssets';
+import { EmptyState } from '@/components/ui/empty-state';
 
 const PIA_QS = [
   { id: 'q1', text: 'Is explicit consent obtained from data subjects?', cat: 'Consent' },
@@ -88,7 +89,7 @@ export default function AssessmentDetail() {
   const [rightVersion, setRightVersion] = useState('2');
   const { resolveIds } = useDataAssets();
 
-  if (!assessment) return <div className="py-16 text-center text-muted-foreground">Assessment not found. <button onClick={() => nav('/assessments')} className="underline">Back</button></div>;
+  if (!assessment) return <div className="py-16 text-center text-muted-foreground">Assessment not found. <button type="button" onClick={() => nav('/assessments')} className="underline">Back</button></div>;
 
   const questions = QS_MAP[assessment.type];
   if (answers === null) {
@@ -160,7 +161,7 @@ export default function AssessmentDetail() {
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div className="min-w-0">
-          <button onClick={() => nav('/assessments')} className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-2"><ArrowLeft className="h-4 w-4" />Back to Assessments</button>
+          <button type="button" onClick={() => nav('/assessments')} className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-2" aria-label="Back to assessments"><ArrowLeft className="h-4 w-4" />Back to Assessments</button>
           <h1 className="text-xl sm:text-2xl font-semibold tracking-tight">{assessment.title}</h1>
           <p className="text-sm text-muted-foreground mt-1">{assessment.description}</p>
         </div>
@@ -253,7 +254,7 @@ export default function AssessmentDetail() {
                   ))}
                 </div>
                 <div className="pl-9">
-                  <Input placeholder="Notes (optional)" value={a.notes} onChange={e => setNotes(q.id, e.target.value)} className="text-sm" />
+                  <Input aria-label={`Notes for ${q.text}`} placeholder="Notes (optional)" value={a.notes} onChange={e => setNotes(q.id, e.target.value)} className="text-sm" />
                 </div>
               </div>
             );
@@ -261,13 +262,13 @@ export default function AssessmentDetail() {
         </TabsContent>
 
         <TabsContent value="findings" className="mt-6 space-y-4">
-          <div className="space-y-2"><Label>Findings</Label><Textarea className="min-h-[160px]" value={findings} onChange={e => setFindings(e.target.value)} placeholder="Document key findings..." /></div>
-          <div className="space-y-2"><Label>Recommendations</Label><Textarea className="min-h-[160px]" value={recs} onChange={e => setRecs(e.target.value)} placeholder="Recommendations and mitigation steps..." /></div>
+          <div className="space-y-2"><Label htmlFor="findings">Findings</Label><Textarea id="findings" className="min-h-[160px]" value={findings} onChange={e => setFindings(e.target.value)} placeholder="Document key findings..." /></div>
+          <div className="space-y-2"><Label htmlFor="recommendations">Recommendations</Label><Textarea id="recommendations" className="min-h-[160px]" value={recs} onChange={e => setRecs(e.target.value)} placeholder="Recommendations and mitigation steps..." /></div>
         </TabsContent>
 
         <TabsContent value="history" className="mt-6">
           <Card><CardContent className="py-6">
-            {!assessment.versions?.length ? <p className="text-sm text-muted-foreground py-8 text-center">No versions yet.</p> : (
+            {!assessment.versions?.length ? <EmptyState icon={FileText} title="No versions yet" description="Save progress or complete the assessment to start a history trail." className="py-8" /> : (
               <div className="space-y-4">
                 <div className="flex justify-end">
                   <Dialog
@@ -291,7 +292,7 @@ export default function AssessmentDetail() {
                         <div className="space-y-2">
                           <p className="text-xs text-muted-foreground uppercase tracking-wider">Base</p>
                           <Select value={leftVersion} onValueChange={setLeftVersion}>
-                            <SelectTrigger><SelectValue /></SelectTrigger>
+                            <SelectTrigger id="compare-leftVersion"><SelectValue /></SelectTrigger>
                             <SelectContent>
                               {snapshots.map((v) => <SelectItem key={`left-${v.version}`} value={String(v.version)}>v{v.version} · {v.note}</SelectItem>)}
                             </SelectContent>
@@ -300,7 +301,7 @@ export default function AssessmentDetail() {
                         <div className="space-y-2">
                           <p className="text-xs text-muted-foreground uppercase tracking-wider">Compare</p>
                           <Select value={rightVersion} onValueChange={setRightVersion}>
-                            <SelectTrigger><SelectValue /></SelectTrigger>
+                            <SelectTrigger id="compare-rightVersion"><SelectValue /></SelectTrigger>
                             <SelectContent>
                               {snapshots.map((v) => <SelectItem key={`right-${v.version}`} value={String(v.version)}>v{v.version} · {v.note}</SelectItem>)}
                             </SelectContent>

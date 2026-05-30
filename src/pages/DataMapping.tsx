@@ -38,7 +38,7 @@ export default function DataMapping() {
       {/* Header */}
       <div className="flex items-center gap-3 px-4 py-2.5 border-b bg-background shrink-0">
         {path.length > 1 && (
-          <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={handleBack}>
+          <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={handleBack} aria-label="Go back one level">
             <ArrowLeft className="h-4 w-4" />
           </Button>
         )}

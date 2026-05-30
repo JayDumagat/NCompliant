@@ -90,10 +90,10 @@ export function DataAssetPicker({ value, onChange, label = 'Data Assets' }: Data
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between gap-2">
-        <Label>{label}</Label>
+        <Label htmlFor="dataasset-search">{label}</Label>
         <Button type="button" variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setCreateOpen(true)}>+ Create New</Button>
       </div>
-      <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search data assets..." />
+      <Input id="dataasset-search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search data assets..." />
       <div className="max-h-44 overflow-y-auto rounded-md border p-2 space-y-3">
         {grouped.length === 0 ? (
           <p className="text-xs text-muted-foreground px-1 py-2">No data assets found.</p>
@@ -121,7 +121,7 @@ export function DataAssetPicker({ value, onChange, label = 'Data Assets' }: Data
           {selected.map((asset) => (
             <Badge key={asset.id} variant="secondary" className="gap-1">
               {asset.name}
-              <button type="button" onClick={() => remove(asset.id)}><X className="h-3 w-3" /></button>
+              <button type="button" onClick={() => remove(asset.id)} aria-label={`Remove ${asset.name}`}><X className="h-3 w-3" /></button>
             </Badge>
           ))}
         </div>
@@ -131,13 +131,13 @@ export function DataAssetPicker({ value, onChange, label = 'Data Assets' }: Data
         <DialogContent className="sm:max-w-md">
           <DialogHeader><DialogTitle>Create Data Asset</DialogTitle></DialogHeader>
           <div className="space-y-3 py-2">
-            <div className="space-y-2"><Label>Name</Label><Input value={newAsset.name} onChange={(e) => setNewAsset({ ...newAsset, name: e.target.value })} /></div>
-            <div className="space-y-2"><Label>Data Type</Label><Input value={newAsset.dataType} onChange={(e) => setNewAsset({ ...newAsset, dataType: e.target.value })} /></div>
-            <div className="space-y-2"><Label>Group</Label><Input value={newAsset.group} onChange={(e) => setNewAsset({ ...newAsset, group: e.target.value })} /></div>
+            <div className="space-y-2"><Label htmlFor="dataasset-new-name">Name</Label><Input id="dataasset-new-name" value={newAsset.name} onChange={(e) => setNewAsset({ ...newAsset, name: e.target.value })} /></div>
+            <div className="space-y-2"><Label htmlFor="dataasset-new-dataType">Data Type</Label><Input id="dataasset-new-dataType" value={newAsset.dataType} onChange={(e) => setNewAsset({ ...newAsset, dataType: e.target.value })} /></div>
+            <div className="space-y-2"><Label htmlFor="dataasset-new-group">Group</Label><Input id="dataasset-new-group" value={newAsset.group} onChange={(e) => setNewAsset({ ...newAsset, group: e.target.value })} /></div>
             <div className="space-y-2">
-              <Label>Classification</Label>
+              <Label htmlFor="dataasset-new-classification">Classification</Label>
               <Select value={newAsset.classification} onValueChange={(v) => setNewAsset({ ...newAsset, classification: v as DataAsset['classification'] })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger id="dataasset-new-classification"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="public">Public</SelectItem>
                   <SelectItem value="internal">Internal</SelectItem>

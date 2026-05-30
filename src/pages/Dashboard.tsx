@@ -1,11 +1,13 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/db/db';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { ArrowRight, Clock, ArrowUpRight, FileText, ClipboardCheck, Database, Zap } from 'lucide-react';
+import { ArrowRight, Clock, ArrowUpRight, FileText } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { EmptyState } from '@/components/ui/empty-state';
 
 export default function Dashboard() {
   const policies = useLiveQuery(() => db.policies.toArray(), []);
@@ -47,9 +49,10 @@ export default function Dashboard() {
   // Flags
   const hasIssues = overdueTasks > 0 || openIncidents > 0 || expiredTraining > 0 || highRiskAssessments > 0;
 
-  // Empty state — new workspace with no data yet (only show after queries have loaded)
-  const isLoading = policies === undefined || tasks === undefined || assessments === undefined;
-  const isEmpty = !isLoading && totalPolicies === 0 && totalTasks === 0 && totalAssessments === 0;
+  const incidentCritical = incidents?.filter((i) => i.severity === 'critical').length ?? 0;
+  const incidentHigh = incidents?.filter((i) => i.severity === 'high').length ?? 0;
+  const incidentMedium = incidents?.filter((i) => i.severity === 'medium').length ?? 0;
+  const incidentLow = incidents?.filter((i) => i.severity === 'low').length ?? 0;
 
   return (
     <div className="space-y-12">
@@ -59,82 +62,110 @@ export default function Dashboard() {
         <p className="text-sm text-muted-foreground mt-1">Your compliance posture at a glance.</p>
       </div>
 
-      {/* Getting-started banner for empty workspaces */}
-      {isEmpty && (
-        <div className="rounded-xl border bg-card p-6 sm:p-8 space-y-6">
-          <div className="flex items-start gap-4">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-              <Zap className="h-5 w-5 text-primary" />
+      <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Compliance Score</CardTitle>
+            <p className="text-xs text-muted-foreground">A compact view of the current posture across the main workstreams.</p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-end gap-2">
+              <span className={cn('text-5xl font-semibold tabular-nums tracking-tight', overallScore >= 80 ? 'text-emerald-600' : overallScore >= 50 ? 'text-amber-600' : 'text-red-600')}>{overallScore}</span>
+              <span className="pb-1 text-sm text-muted-foreground">/ 100</span>
             </div>
-            <div>
-              <h2 className="text-base font-semibold">Welcome to your workspace!</h2>
-              <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
-                Your dashboard is ready. Start building your compliance program by adding your first records.
-              </p>
-            </div>
-          </div>
-          <div className="grid sm:grid-cols-3 gap-3">
-            {[
-              { icon: FileText, label: 'Create a Policy', desc: 'Document your compliance policies and assign owners.', to: '/policies' },
-              { icon: Database, label: 'Add a Data Asset', desc: 'Register data assets and classify your data inventory.', to: '/data-management' },
-              { icon: ClipboardCheck, label: 'Run an Assessment', desc: 'Start a PIA, risk assessment, or security checklist.', to: '/assessments' },
-            ].map((item) => (
-              <Link key={item.label} to={item.to} className="group rounded-lg border bg-background p-4 hover:border-primary/50 hover:bg-accent/30 transition-colors">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary mb-3 transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
-                  <item.icon className="h-4 w-4" />
+            <div className="space-y-3">
+              {[
+                { label: 'Policy coverage', value: policyScore },
+                { label: 'Task completion', value: taskScore },
+                { label: 'Assessment completion', value: assessmentScore },
+                { label: 'Deadline health', value: overdueScore },
+              ].map((item) => (
+                <div key={item.label} className="space-y-1">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground">{item.label}</span>
+                    <span className="tabular-nums text-muted-foreground">{item.value}%</span>
+                  </div>
+                  <Progress value={item.value} className="h-1.5" />
                 </div>
-                <p className="text-sm font-medium">{item.label}</p>
-                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{item.desc}</p>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Current Snapshot</CardTitle>
+            <p className="text-xs text-muted-foreground">The main counts users look for first.</p>
+          </CardHeader>
+          <CardContent className="grid grid-cols-2 gap-3">
+            {[
+              { label: 'Policies', value: totalPolicies, sub: `${activePolicies} active`, to: '/policies' },
+              { label: 'Open tasks', value: openTasks, sub: overdueTasks > 0 ? `${overdueTasks} overdue` : 'On track', alert: overdueTasks > 0, to: '/tasks' },
+              { label: 'Assessments', value: totalAssessments, sub: `${completedAssessments} completed`, to: '/assessments' },
+              { label: 'Alerts', value: criticalUpdates + warningUpdates, sub: criticalUpdates > 0 ? `${criticalUpdates} critical` : 'None', alert: criticalUpdates > 0, to: '/updates' },
+            ].map((item) => (
+              <Link key={item.label} to={item.to} className="rounded-lg border bg-card p-4 transition-colors hover:bg-accent/30">
+                <p className="text-xs text-muted-foreground">{item.label}</p>
+                <p className="mt-2 text-2xl font-semibold tabular-nums">{item.value}</p>
+                <p className={cn('mt-1 text-xs', item.alert ? 'text-destructive' : 'text-muted-foreground')}>{item.sub}</p>
               </Link>
             ))}
-          </div>
-        </div>
-      )}
-
-      {/* Overall score — simple number, no donut */}
-      <div className="flex flex-col sm:flex-row sm:items-end gap-6 sm:gap-12">
-        <div>
-          <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Compliance Score</p>
-          <div className="flex items-baseline gap-1">
-            <span className={cn(
-              'text-5xl sm:text-6xl font-semibold tabular-nums tracking-tight',
-              overallScore >= 80 ? 'text-emerald-600' : overallScore >= 50 ? 'text-amber-600' : 'text-red-600'
-            )}>{overallScore}</span>
-            <span className="text-lg text-muted-foreground">/ 100</span>
-          </div>
-        </div>
-        <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-x-8 gap-y-3 sm:gap-y-0 pb-1">
-          {[
-            { label: 'Policy', value: policyScore },
-            { label: 'Tasks', value: taskScore },
-            { label: 'Assessments', value: assessmentScore },
-            { label: 'Deadlines', value: overdueScore },
-          ].map(m => (
-            <div key={m.label}>
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="text-xs text-muted-foreground">{m.label}</span>
-                <span className="text-xs tabular-nums text-muted-foreground">{m.value}%</span>
-              </div>
-              <Progress value={m.value} className="h-1" />
-            </div>
-          ))}
-        </div>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Stat row — flat numbers */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-border rounded-lg overflow-hidden">
-        {[
-          { label: 'Policies', value: totalPolicies, sub: `${activePolicies} active`, to: '/policies' },
-          { label: 'Open Tasks', value: openTasks, sub: overdueTasks > 0 ? `${overdueTasks} overdue` : 'On track', alert: overdueTasks > 0, to: '/tasks' },
-          { label: 'Assessments', value: `${completedAssessments}/${totalAssessments}`, sub: highRiskAssessments > 0 ? `${highRiskAssessments} high risk` : 'On track', alert: highRiskAssessments > 0, to: '/assessments' },
-          { label: 'Alerts', value: criticalUpdates + warningUpdates, sub: criticalUpdates > 0 ? `${criticalUpdates} critical` : 'None', alert: criticalUpdates > 0, to: '/updates' },
-        ].map((s) => (
-          <Link key={s.label} to={s.to} className="bg-card p-4 sm:p-5 hover:bg-accent/40 transition-colors group">
-            <p className="text-xs text-muted-foreground mb-1">{s.label}</p>
-            <p className="text-2xl font-semibold tabular-nums">{s.value}</p>
-            <p className={cn('text-xs mt-1', s.alert ? 'text-red-500' : 'text-muted-foreground')}>{s.sub}</p>
-          </Link>
-        ))}
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Risk Mix</CardTitle>
+            <p className="text-xs text-muted-foreground">A quick read on active incident severity.</p>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {[
+              { label: 'Critical', value: incidentCritical, tone: 'text-destructive' },
+              { label: 'High', value: incidentHigh, tone: 'text-orange-600' },
+              { label: 'Medium', value: incidentMedium, tone: 'text-amber-600' },
+              { label: 'Low', value: incidentLow, tone: 'text-emerald-600' },
+            ].map((item) => (
+              <div key={item.label} className="space-y-1">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground">{item.label}</span>
+                  <span className={cn('tabular-nums', item.tone)}>{item.value}</span>
+                </div>
+                <Progress value={Math.min(100, item.value * 25)} className="h-1.5" />
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Attention Needed</CardTitle>
+            <p className="text-xs text-muted-foreground">Only the items that require action right now.</p>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {[
+              { label: 'Overdue tasks', value: overdueTasks, to: '/tasks' },
+              { label: 'Open incidents', value: openIncidents, to: '/incidents' },
+              { label: 'Expired training', value: expiredTraining, to: '/training' },
+              { label: 'High-risk assessments', value: highRiskAssessments, to: '/assessments' },
+            ].filter((item) => item.value > 0).length === 0 ? (
+              <p className="py-4 text-sm text-muted-foreground">No active issues right now.</p>
+            ) : (
+              [
+                { label: 'Overdue tasks', value: overdueTasks, to: '/tasks' },
+                { label: 'Open incidents', value: openIncidents, to: '/incidents' },
+                { label: 'Expired training', value: expiredTraining, to: '/training' },
+                { label: 'High-risk assessments', value: highRiskAssessments, to: '/assessments' },
+              ].filter((item) => item.value > 0).map((item) => (
+                <Link key={item.label} to={item.to} className="flex items-center justify-between rounded-lg border px-3 py-2 text-sm transition-colors hover:bg-accent/30">
+                  <span>{item.label}</span>
+                  <span className="tabular-nums text-muted-foreground">{item.value}</span>
+                </Link>
+              ))
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       {/* Attention items — only show if there are issues */}
@@ -236,7 +267,7 @@ export default function Dashboard() {
             <Link to="/policies"><Button variant="ghost" size="sm" className="gap-1 text-xs h-7 text-muted-foreground">View all<ArrowUpRight className="h-3 w-3" /></Button></Link>
           </div>
           <div className="space-y-1">
-            {recentPolicies?.length === 0 && <p className="text-sm text-muted-foreground py-8 text-center">No policies yet.</p>}
+            {recentPolicies?.length === 0 && <EmptyState icon={FileText} title="No policies yet" description="Create a policy and it will appear here as your latest work." className="py-8" />}
             {recentPolicies?.map((p) => (
               <Link key={p.id} to={`/policies/${p.id}`} className="flex items-center justify-between py-2.5 px-1 border-b last:border-0 hover:bg-accent/30 transition-colors rounded-sm">
                 <div className="min-w-0 flex-1">

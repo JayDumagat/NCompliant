@@ -107,9 +107,9 @@ function ReminderDialog({ onDone }: { onDone: () => void }) {
         </DialogHeader>
         <div className="space-y-4 py-2">
           <div className="space-y-2">
-            <Label>Template</Label>
+            <Label htmlFor="reminder-template">Template</Label>
             <Select value={form.template} onValueChange={applyTemplate}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger id="reminder-template"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="regulatory_submission">Regulatory Submission</SelectItem>
                 <SelectItem value="credential_refresh">Credential Refresh</SelectItem>
@@ -119,12 +119,13 @@ function ReminderDialog({ onDone }: { onDone: () => void }) {
             </Select>
           </div>
           <div className="space-y-2">
-            <Label>Title</Label>
-            <Input value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} />
+            <Label htmlFor="reminder-title">Title</Label>
+            <Input id="reminder-title" value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} />
           </div>
           <div className="space-y-2">
-            <Label>Description</Label>
+            <Label htmlFor="reminder-description">Description</Label>
             <Textarea
+              id="reminder-description"
               className="min-h-[90px]"
               value={form.description}
               onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
@@ -132,13 +133,13 @@ function ReminderDialog({ onDone }: { onDone: () => void }) {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label>Due Date</Label>
-              <Input type="date" value={form.dueDate} onChange={(e) => setForm((f) => ({ ...f, dueDate: e.target.value }))} />
+              <Label htmlFor="reminder-dueDate">Due Date</Label>
+              <Input id="reminder-dueDate" type="date" value={form.dueDate} onChange={(e) => setForm((f) => ({ ...f, dueDate: e.target.value }))} />
             </div>
             <div className="space-y-2">
-              <Label>Priority</Label>
+              <Label htmlFor="reminder-priority">Priority</Label>
               <Select value={form.priority} onValueChange={(value) => setForm((f) => ({ ...f, priority: value }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger id="reminder-priority"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="low">Low</SelectItem>
                   <SelectItem value="medium">Medium</SelectItem>
@@ -285,8 +286,8 @@ export default function Reminders() {
               {monthCursor.toLocaleString(undefined, { month: 'long', year: 'numeric' })}
             </CardTitle>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={previousMonth}>Prev</Button>
-              <Button variant="outline" size="sm" onClick={nextMonth}>Next</Button>
+              <Button variant="outline" size="sm" onClick={previousMonth} aria-label="Previous month">Prev</Button>
+              <Button variant="outline" size="sm" onClick={nextMonth} aria-label="Next month">Next</Button>
             </div>
           </CardHeader>
           <CardContent className="space-y-3">

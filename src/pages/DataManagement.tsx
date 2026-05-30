@@ -9,10 +9,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus } from 'lucide-react';
+import { Plus, Database } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { Link } from 'react-router-dom';
+import { EmptyState } from '@/components/ui/empty-state';
 
 const CLASS_COLORS: Record<DataAsset['classification'], string> = {
   public: 'bg-sky-500/10 text-sky-700',
@@ -103,21 +104,21 @@ function DataAssetDialog({ trigger, asset }: { trigger: React.ReactNode; asset?:
         <DialogHeader><DialogTitle>{asset ? 'Edit Data Record' : 'Add Data Record'}</DialogTitle></DialogHeader>
         <div className="space-y-4 py-2">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="space-y-2"><Label>Name</Label><Input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Data asset name" /></div>
-            <div className="space-y-2"><Label>Data Type</Label><Input value={form.dataType} onChange={e => setForm({ ...form, dataType: e.target.value })} placeholder="Personal Data, Financial Data..." /></div>
+            <div className="space-y-2"><Label htmlFor="data-name">Name</Label><Input id="data-name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Data asset name" /></div>
+            <div className="space-y-2"><Label htmlFor="data-dataType">Data Type</Label><Input id="data-dataType" value={form.dataType} onChange={e => setForm({ ...form, dataType: e.target.value })} placeholder="Personal Data, Financial Data..." /></div>
           </div>
-          <div className="space-y-2"><Label>Description</Label><Textarea className="min-h-[80px]" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} /></div>
+          <div className="space-y-2"><Label htmlFor="data-description">Description</Label><Textarea id="data-description" className="min-h-[80px]" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} /></div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="space-y-2"><Label>Classification</Label><Select value={form.classification} onValueChange={v => setForm({ ...form, classification: v as DataAsset['classification'] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="public">Public</SelectItem><SelectItem value="internal">Internal</SelectItem><SelectItem value="confidential">Confidential</SelectItem><SelectItem value="restricted">Restricted</SelectItem></SelectContent></Select></div>
-            <div className="space-y-2"><Label>Group</Label><Input value={form.group} onChange={e => setForm({ ...form, group: e.target.value })} placeholder="Customer Records" /></div>
-            <div className="space-y-2"><Label>Status</Label><Select value={form.status} onValueChange={v => setForm({ ...form, status: v as DataAsset['status'] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="active">Active</SelectItem><SelectItem value="archived">Archived</SelectItem></SelectContent></Select></div>
+            <div className="space-y-2"><Label htmlFor="data-classification">Classification</Label><Select value={form.classification} onValueChange={v => setForm({ ...form, classification: v as DataAsset['classification'] })}><SelectTrigger id="data-classification"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="public">Public</SelectItem><SelectItem value="internal">Internal</SelectItem><SelectItem value="confidential">Confidential</SelectItem><SelectItem value="restricted">Restricted</SelectItem></SelectContent></Select></div>
+            <div className="space-y-2"><Label htmlFor="data-group">Group</Label><Input id="data-group" value={form.group} onChange={e => setForm({ ...form, group: e.target.value })} placeholder="Customer Records" /></div>
+            <div className="space-y-2"><Label htmlFor="data-status">Status</Label><Select value={form.status} onValueChange={v => setForm({ ...form, status: v as DataAsset['status'] })}><SelectTrigger id="data-status"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="active">Active</SelectItem><SelectItem value="archived">Archived</SelectItem></SelectContent></Select></div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="space-y-2"><Label>Owner</Label><Input value={form.owner} onChange={e => setForm({ ...form, owner: e.target.value })} placeholder="Business owner/team" /></div>
-            <div className="space-y-2"><Label>Last Reviewed</Label><Input type="date" value={form.lastReviewedAt} onChange={e => setForm({ ...form, lastReviewedAt: e.target.value })} /></div>
+            <div className="space-y-2"><Label htmlFor="data-owner">Owner</Label><Input id="data-owner" value={form.owner} onChange={e => setForm({ ...form, owner: e.target.value })} placeholder="Business owner/team" /></div>
+            <div className="space-y-2"><Label htmlFor="data-lastReviewedAt">Last Reviewed</Label><Input id="data-lastReviewedAt" type="date" value={form.lastReviewedAt} onChange={e => setForm({ ...form, lastReviewedAt: e.target.value })} /></div>
           </div>
-          <div className="space-y-2"><Label>Retention Policy</Label><Input value={form.retentionPolicy} onChange={e => setForm({ ...form, retentionPolicy: e.target.value })} placeholder="Retention and disposal rule" /></div>
-          <div className="space-y-2"><Label>Tags (comma separated)</Label><Input value={form.tags} onChange={e => setForm({ ...form, tags: e.target.value })} placeholder="pii, finance, customer" /></div>
+          <div className="space-y-2"><Label htmlFor="data-retentionPolicy">Retention Policy</Label><Input id="data-retentionPolicy" value={form.retentionPolicy} onChange={e => setForm({ ...form, retentionPolicy: e.target.value })} placeholder="Retention and disposal rule" /></div>
+          <div className="space-y-2"><Label htmlFor="data-tags">Tags (comma separated)</Label><Input id="data-tags" value={form.tags} onChange={e => setForm({ ...form, tags: e.target.value })} placeholder="pii, finance, customer" /></div>
         </div>
         <div className="flex justify-end gap-2 pt-2">
           <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
@@ -187,9 +188,9 @@ export default function DataManagement() {
       </div>
 
       <div className="grid gap-3 sm:grid-cols-3">
-        <Input value={q} onChange={e => setQ(e.target.value)} placeholder="Search name, type, owner, tag..." />
+        <Input aria-label="Search data assets" value={q} onChange={e => setQ(e.target.value)} placeholder="Search name, type, owner, tag..." />
         <Select value={classification} onValueChange={v => setClassification(v as typeof classification)}>
-          <SelectTrigger><SelectValue /></SelectTrigger>
+          <SelectTrigger id="data-classification-filter"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All classifications</SelectItem>
             <SelectItem value="restricted">Restricted</SelectItem>
@@ -199,7 +200,7 @@ export default function DataManagement() {
           </SelectContent>
         </Select>
         <Select value={groupFilter} onValueChange={setGroupFilter}>
-          <SelectTrigger><SelectValue /></SelectTrigger>
+          <SelectTrigger id="data-groupFilter"><SelectValue /></SelectTrigger>
           <SelectContent>
             {groups.map(group => <SelectItem key={group} value={group}>{group === 'all' ? 'All groups' : group}</SelectItem>)}
           </SelectContent>
@@ -208,7 +209,7 @@ export default function DataManagement() {
 
       <div className="space-y-3">
         {filtered.length === 0 ? (
-          <Card><CardContent className="py-12 text-center text-muted-foreground">No data records found.</CardContent></Card>
+          <EmptyState icon={Database} title="No data records found" description="Add a data asset to track ownership, classification, and references." className="py-12" />
         ) : (
           filtered
             .map(asset => {

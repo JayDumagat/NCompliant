@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Plus, Download, FileText, Trash2, BarChart3 } from 'lucide-react';
+import { EmptyState } from '@/components/ui/empty-state';
 import { exportReportPDF } from '@/lib/exportPdf';
 import { toast } from 'sonner';
 import { useState } from 'react';
@@ -68,18 +69,18 @@ function GenerateDialog() {
       <DialogContent className="sm:max-w-md">
         <DialogHeader><DialogTitle>Generate Report</DialogTitle></DialogHeader>
         <div className="space-y-4 py-2">
-          <div className="space-y-2"><Label>Template</Label>
-            <Select value={f.template} onValueChange={v => setF({ ...f, template: v as Report['template'] })}><SelectTrigger><SelectValue /></SelectTrigger>
+          <div className="space-y-2"><Label htmlFor="report-template">Template</Label>
+            <Select value={f.template} onValueChange={v => setF({ ...f, template: v as Report['template'] })}><SelectTrigger id="report-template"><SelectValue /></SelectTrigger>
               <SelectContent>{Object.entries(TPL_LABEL).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}</SelectContent></Select></div>
           <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2"><Label>Type</Label>
-              <Select value={f.type} onValueChange={v => setF({ ...f, type: v as Report['type'] })}><SelectTrigger><SelectValue /></SelectTrigger>
+            <div className="space-y-2"><Label htmlFor="report-type">Type</Label>
+              <Select value={f.type} onValueChange={v => setF({ ...f, type: v as Report['type'] })}><SelectTrigger id="report-type"><SelectValue /></SelectTrigger>
                 <SelectContent><SelectItem value="internal">Internal</SelectItem><SelectItem value="regulatory">Regulatory</SelectItem></SelectContent></Select></div>
-            <div className="space-y-2"><Label>Period</Label>
-              <Select value={f.period} onValueChange={v => setF({ ...f, period: v as Report['period'] })}><SelectTrigger><SelectValue /></SelectTrigger>
+            <div className="space-y-2"><Label htmlFor="report-period">Period</Label>
+              <Select value={f.period} onValueChange={v => setF({ ...f, period: v as Report['period'] })}><SelectTrigger id="report-period"><SelectValue /></SelectTrigger>
                 <SelectContent>{Object.entries(PERIOD_LABEL).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}</SelectContent></Select></div>
           </div>
-          <div className="space-y-2"><Label>Notes</Label><Textarea className="min-h-[60px]" value={f.notes} onChange={e => setF({ ...f, notes: e.target.value })} placeholder="Optional notes..." /></div>
+          <div className="space-y-2"><Label htmlFor="report-notes">Notes</Label><Textarea id="report-notes" className="min-h-[60px]" value={f.notes} onChange={e => setF({ ...f, notes: e.target.value })} placeholder="Optional notes..." /></div>
         </div>
         <div className="flex justify-end gap-2 pt-2">
           <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
@@ -155,7 +156,7 @@ function ReportCard({ report }: { report: Report }) {
           <Button variant="outline" size="sm" className="gap-1.5" onClick={exportJSON}><Download className="h-3.5 w-3.5" />JSON</Button>
           {report.status === 'draft' && <Button size="sm" className="gap-1.5" onClick={finalize}><FileText className="h-3.5 w-3.5" />Finalize</Button>}
           <div className="flex-1" />
-          <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-destructive gap-1.5" onClick={del}><Trash2 className="h-3.5 w-3.5" /></Button>
+          <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-destructive gap-1.5" onClick={del} aria-label={`Delete report ${report.title}`}><Trash2 className="h-3.5 w-3.5" /></Button>
         </div>
       </CardContent>
     </Card>
@@ -178,10 +179,7 @@ export default function Reports() {
 
       <div className="space-y-4">
         {sorted.length === 0 ? (
-          <Card><CardContent className="py-16 text-center">
-            <BarChart3 className="h-10 w-10 text-muted-foreground/40 mx-auto mb-3" />
-            <p className="text-sm text-muted-foreground">No reports yet. Generate one to get started.</p>
-          </CardContent></Card>
+          <EmptyState icon={BarChart3} title="No reports yet" description="Generate a report to get a clean snapshot of your workspace." className="py-16" />
         ) : sorted.map(r => <ReportCard key={r.id} report={r} />)}
       </div>
     </div>

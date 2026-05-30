@@ -23,7 +23,9 @@ export function MapBreadcrumb({ path, onNavigate }: MapBreadcrumbProps) {
   return (
     <nav className="flex items-center gap-1 text-sm overflow-x-auto no-scrollbar">
       <button
+        type="button"
         onClick={() => onNavigate(0)}
+        aria-label={`Go to ${LEVEL_LABELS[path[0]?.level] || 'Data Map'}`}
         className={cn(
           'flex items-center gap-1.5 shrink-0 rounded-md px-2 py-1 transition-colors',
           path.length === 1
@@ -39,7 +41,9 @@ export function MapBreadcrumb({ path, onNavigate }: MapBreadcrumbProps) {
         <div key={item.id ?? i} className="flex items-center gap-1 shrink-0">
           <ChevronRight className="h-3 w-3 text-muted-foreground/50" />
           <button
+            type="button"
             onClick={() => onNavigate(i + 1)}
+            aria-label={`Go to ${item.label}`}
             className={cn(
               'rounded-md px-2 py-1 transition-colors text-xs',
               i + 1 === path.length - 1

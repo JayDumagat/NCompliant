@@ -10,6 +10,7 @@ import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useUIStore } from '@/store/uiStore';
 import { Plus, Download, Upload, Trash2, Check, Shield } from 'lucide-react';
+import { EmptyState } from '@/components/ui/empty-state';
 import { toast } from 'sonner';
 import { useState, useRef } from 'react';
 
@@ -30,7 +31,7 @@ function NewWorkspaceDialog() {
       <DialogContent className="sm:max-w-md">
         <DialogHeader><DialogTitle>New Workspace</DialogTitle></DialogHeader>
         <div className="space-y-3 py-2">
-          <div className="space-y-2"><Label>Workspace Name</Label><Input value={name} onChange={e => setName(e.target.value)} placeholder="My Organization" /></div>
+          <div className="space-y-2"><Label htmlFor="new-ws-name">Workspace Name</Label><Input id="new-ws-name" value={name} onChange={e => setName(e.target.value)} placeholder="My Organization" /></div>
         </div>
         <div className="flex justify-end gap-2 pt-2"><Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button><Button onClick={save} disabled={!name}>Create</Button></div>
       </DialogContent>
@@ -43,7 +44,7 @@ function DeleteWSDialog({ ws }: { ws: Workspace }) {
   const del = async () => { await db.workspaces.delete(ws.id); toast.success('Workspace deleted'); setOpen(false); };
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive"><Trash2 className="h-4 w-4" /></Button></DialogTrigger>
+      <DialogTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" aria-label={`Delete workspace ${ws.name}`}><Trash2 className="h-4 w-4" /></Button></DialogTrigger>
       <DialogContent className="sm:max-w-sm">
         <DialogHeader><DialogTitle>Delete Workspace</DialogTitle></DialogHeader>
         <p className="text-sm text-muted-foreground py-2">Delete "{ws.name}"? Data associated with this workspace will remain but become unlinked.</p>
@@ -132,7 +133,7 @@ export default function Settings() {
               </div>
             </div>
           ))}
-          {!workspaces?.length && <p className="text-sm text-muted-foreground py-8 text-center">No workspaces created yet.</p>}
+          {!workspaces?.length && <EmptyState icon={Shield} title="No workspaces yet" description="Create your first workspace to start organizing compliance work." className="py-8" />}
         </CardContent>
       </Card>
 
@@ -146,7 +147,7 @@ export default function Settings() {
               <p className="text-sm text-muted-foreground mt-0.5">Choose your preferred appearance.</p>
             </div>
             <Select value={theme} onValueChange={handleTheme}>
-              <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
+              <SelectTrigger id="settings-theme" className="w-[140px]"><SelectValue /></SelectTrigger>
               <SelectContent><SelectItem value="light">Light</SelectItem><SelectItem value="dark">Dark</SelectItem><SelectItem value="system">System</SelectItem></SelectContent>
             </Select>
           </div>

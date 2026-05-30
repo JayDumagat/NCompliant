@@ -9,10 +9,11 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Pencil, Trash2, Search } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, GraduationCap } from 'lucide-react';
 import { toast } from 'sonner';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
+import { EmptyState } from '@/components/ui/empty-state';
 
 const CAT_LABEL: Record<string, string> = { privacy: 'Privacy', security: 'Security', compliance: 'Compliance', aml: 'AML', general: 'General' };
 const STATUS_BADGE: Record<string, { variant: 'default' | 'secondary' | 'destructive' | 'outline'; label: string }> = {
@@ -57,24 +58,24 @@ function RecordDialog({ record, trigger, onDone }: { record?: TrainingRecord; tr
         <DialogHeader><DialogTitle>{record ? 'Edit Training Record' : 'New Training Record'}</DialogTitle></DialogHeader>
         <div className="space-y-4 py-2">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="space-y-2"><Label>Employee</Label><Input value={f.employeeName} onChange={e => setF({ ...f, employeeName: e.target.value })} placeholder="Full name" /></div>
-            <div className="space-y-2"><Label>Course</Label><Input value={f.courseName} onChange={e => setF({ ...f, courseName: e.target.value })} placeholder="Course name" /></div>
+            <div className="space-y-2"><Label htmlFor="training-employeeName">Employee</Label><Input id="training-employeeName" value={f.employeeName} onChange={e => setF({ ...f, employeeName: e.target.value })} placeholder="Full name" /></div>
+            <div className="space-y-2"><Label htmlFor="training-courseName">Course</Label><Input id="training-courseName" value={f.courseName} onChange={e => setF({ ...f, courseName: e.target.value })} placeholder="Course name" /></div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="space-y-2"><Label>Category</Label>
-              <Select value={f.category} onValueChange={v => setF({ ...f, category: v as TrainingRecord['category'] })}><SelectTrigger><SelectValue /></SelectTrigger>
+            <div className="space-y-2"><Label htmlFor="training-category">Category</Label>
+              <Select value={f.category} onValueChange={v => setF({ ...f, category: v as TrainingRecord['category'] })}><SelectTrigger id="training-category"><SelectValue /></SelectTrigger>
                 <SelectContent>{Object.entries(CAT_LABEL).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}</SelectContent></Select></div>
-            <div className="space-y-2"><Label>Status</Label>
-              <Select value={f.status} onValueChange={v => setF({ ...f, status: v as TrainingRecord['status'] })}><SelectTrigger><SelectValue /></SelectTrigger>
+            <div className="space-y-2"><Label htmlFor="training-status">Status</Label>
+              <Select value={f.status} onValueChange={v => setF({ ...f, status: v as TrainingRecord['status'] })}><SelectTrigger id="training-status"><SelectValue /></SelectTrigger>
                 <SelectContent><SelectItem value="scheduled">Scheduled</SelectItem><SelectItem value="in_progress">In Progress</SelectItem><SelectItem value="completed">Completed</SelectItem><SelectItem value="expired">Expired</SelectItem></SelectContent></Select></div>
-            <div className="space-y-2"><Label>Certificate</Label><Input value={f.certificateRef} onChange={e => setF({ ...f, certificateRef: e.target.value })} placeholder="Ref #" /></div>
+            <div className="space-y-2"><Label htmlFor="training-certificateRef">Certificate</Label><Input id="training-certificateRef" value={f.certificateRef} onChange={e => setF({ ...f, certificateRef: e.target.value })} placeholder="Ref #" /></div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="space-y-2"><Label>Scheduled</Label><Input type="date" value={f.scheduledDate} onChange={e => setF({ ...f, scheduledDate: e.target.value })} /></div>
-            <div className="space-y-2"><Label>Completed</Label><Input type="date" value={f.completedDate} onChange={e => setF({ ...f, completedDate: e.target.value })} /></div>
-            <div className="space-y-2"><Label>Expires</Label><Input type="date" value={f.expirationDate} onChange={e => setF({ ...f, expirationDate: e.target.value })} /></div>
+            <div className="space-y-2"><Label htmlFor="training-scheduledDate">Scheduled</Label><Input id="training-scheduledDate" type="date" value={f.scheduledDate} onChange={e => setF({ ...f, scheduledDate: e.target.value })} /></div>
+            <div className="space-y-2"><Label htmlFor="training-completedDate">Completed</Label><Input id="training-completedDate" type="date" value={f.completedDate} onChange={e => setF({ ...f, completedDate: e.target.value })} /></div>
+            <div className="space-y-2"><Label htmlFor="training-expirationDate">Expires</Label><Input id="training-expirationDate" type="date" value={f.expirationDate} onChange={e => setF({ ...f, expirationDate: e.target.value })} /></div>
           </div>
-          <div className="space-y-2"><Label>Notes</Label><Textarea className="min-h-[60px]" value={f.notes} onChange={e => setF({ ...f, notes: e.target.value })} /></div>
+          <div className="space-y-2"><Label htmlFor="training-notes">Notes</Label><Textarea id="training-notes" className="min-h-[60px]" value={f.notes} onChange={e => setF({ ...f, notes: e.target.value })} /></div>
         </div>
         <div className="flex justify-end gap-2 pt-2">
           <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
@@ -127,7 +128,7 @@ export default function Training() {
 
       <div className="relative max-w-sm">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input placeholder="Search by employee or course..." className="pl-9" value={q} onChange={e => setQ(e.target.value)} />
+        <Input aria-label="Search training records" placeholder="Search by employee or course..." className="pl-9" value={q} onChange={e => setQ(e.target.value)} />
       </div>
 
       {/* Desktop table */}
@@ -140,7 +141,7 @@ export default function Training() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filtered?.length === 0 ? <TableRow><TableCell colSpan={6} className="h-24 text-center text-muted-foreground">No records found.</TableCell></TableRow>
+            {filtered?.length === 0 ? <TableRow><TableCell colSpan={6} className="p-0"><div className="px-4 py-8"><EmptyState icon={GraduationCap} title="No training records found" description="Add a record to track completion and expiry dates." className="py-8" /></div></TableCell></TableRow>
             : filtered?.map(r => {
               const exp = r.expirationDate && r.expirationDate < now;
               const soon = r.expirationDate && !exp && r.expirationDate < now + d30;
@@ -156,8 +157,8 @@ export default function Training() {
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-1">
-                      <RecordDialog record={r} trigger={<Button variant="ghost" size="icon" className="h-8 w-8"><Pencil className="h-3.5 w-3.5" /></Button>} onDone={() => {}} />
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => del(r.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
+                      <RecordDialog record={r} trigger={<Button variant="ghost" size="icon" className="h-8 w-8" aria-label={`Edit training record for ${r.employeeName}`}><Pencil className="h-3.5 w-3.5" /></Button>} onDone={() => {}} />
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => del(r.id)} aria-label={`Delete training record for ${r.employeeName}`}><Trash2 className="h-3.5 w-3.5" /></Button>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -169,7 +170,7 @@ export default function Training() {
 
       {/* Mobile cards */}
       <div className="space-y-3 sm:hidden">
-        {filtered?.length === 0 ? <Card><CardContent className="py-12 text-center text-muted-foreground">No records found.</CardContent></Card>
+        {filtered?.length === 0 ? <EmptyState icon={GraduationCap} title="No training records found" description="Add a training record to track course status and expiry dates." className="py-12" />
         : filtered?.map(r => {
           const exp = r.expirationDate && r.expirationDate < now;
           const soon = r.expirationDate && !exp && r.expirationDate < now + d30;
@@ -188,8 +189,8 @@ export default function Training() {
                     </div>
                   </div>
                   <div className="flex items-center gap-0.5 shrink-0">
-                    <RecordDialog record={r} trigger={<Button variant="ghost" size="icon" className="h-8 w-8"><Pencil className="h-3.5 w-3.5" /></Button>} onDone={() => {}} />
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => del(r.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
+                    <RecordDialog record={r} trigger={<Button variant="ghost" size="icon" className="h-8 w-8" aria-label={`Edit training record for ${r.employeeName}`}><Pencil className="h-3.5 w-3.5" /></Button>} onDone={() => {}} />
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => del(r.id)} aria-label={`Delete training record for ${r.employeeName}`}><Trash2 className="h-3.5 w-3.5" /></Button>
                   </div>
                 </div>
               </CardContent>

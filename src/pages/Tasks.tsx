@@ -10,21 +10,27 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Clock, Plus, Pencil, Trash2, User, LayoutTemplate, List, Columns3, LayoutGrid } from 'lucide-react';
+import { EmptyState } from '@/components/ui/empty-state';
+import { Clock, Plus, Pencil, Trash2, User, LayoutTemplate, List, Columns3, LayoutGrid, ChevronLeft, Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
+import { Separator } from '@/components/ui/separator';
+
+const TASK_STEPS = ['Details', 'Assignment', 'Review'];
 
 /* ── Task Dialog ── */
 function TaskDialog({ task, trigger, onDone }: { task?: Task; trigger: React.ReactNode; onDone: () => void }) {
   const policies = useLiveQuery(() => db.policies.toArray(), []);
   const [open, setOpen] = useState(false);
+  const [step, setStep] = useState(0);
   const [f, setF] = useState({ title: '', description: '', priority: 'medium', status: 'todo', assignedTo: '', policyId: '', dueDate: '' });
 
   const handleOpen = (v: boolean) => {
     if (v && task) setF({ title: task.title, description: task.description, priority: task.priority, status: task.status, assignedTo: task.assignedTo ?? '', policyId: task.policyId ?? '', dueDate: task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '' });
     else if (v) setF({ title: '', description: '', priority: 'medium', status: 'todo', assignedTo: '', policyId: '', dueDate: '' });
+    if (v) setStep(0);
     setOpen(v);
   };
 
@@ -32,36 +38,121 @@ function TaskDialog({ task, trigger, onDone }: { task?: Task; trigger: React.Rea
     const data = { title: f.title, description: f.description, priority: f.priority as Task['priority'], status: f.status as Task['status'], assignedTo: f.assignedTo, policyId: f.policyId || undefined, dueDate: f.dueDate ? new Date(f.dueDate).getTime() : undefined };
     if (task) { await db.tasks.update(task.id, data); toast.success('Task updated'); }
     else { await db.tasks.add({ id: crypto.randomUUID(), workspaceId: 'ws-default', createdAt: Date.now(), ...data }); toast.success('Task created'); }
-    setOpen(false); onDone();
+    setOpen(false); setStep(0); onDone();
   };
 
   return (
     <Dialog open={open} onOpenChange={handleOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto custom-scrollbar">
-        <DialogHeader><DialogTitle>{task ? 'Edit Task' : 'New Task'}</DialogTitle></DialogHeader>
-        <div className="space-y-4 py-2">
-          <div className="space-y-2"><Label>Title</Label><Input value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} placeholder="Task title" /></div>
-          <div className="space-y-2"><Label>Description</Label><Textarea className="min-h-[80px]" value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} placeholder="Brief description..." /></div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2"><Label>Priority</Label>
-              <Select value={f.priority} onValueChange={(v) => setF({ ...f, priority: v })}><SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent><SelectItem value="low">Low</SelectItem><SelectItem value="medium">Medium</SelectItem><SelectItem value="high">High</SelectItem></SelectContent></Select></div>
-            <div className="space-y-2"><Label>Status</Label>
-              <Select value={f.status} onValueChange={(v) => setF({ ...f, status: v })}><SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent><SelectItem value="todo">To Do</SelectItem><SelectItem value="in_progress">In Progress</SelectItem><SelectItem value="done">Done</SelectItem></SelectContent></Select></div>
+      <DialogContent className="w-[min(100vw-1rem,1440px)] max-w-none h-[calc(100vh-1rem)] overflow-hidden p-0 sm:rounded-2xl">
+        <div className="grid h-full min-h-0 lg:grid-cols-[300px_1fr]">
+          <aside className="hidden min-h-0 flex-col border-r border-border/40 bg-background p-6 lg:flex">
+            <div className="space-y-3">
+              <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <LayoutTemplate className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-lg font-semibold tracking-tight">{task ? 'Edit Task' : 'New Task'}</p>
+                <p className="text-sm text-muted-foreground">Complete the task in a compact but full-screen stepper.</p>
+              </div>
+            </div>
+            <div className="mt-8 space-y-2">
+              {TASK_STEPS.map((label, index) => {
+                const active = index === step;
+                const complete = index < step;
+                return (
+                  <button key={label} onClick={() => complete && setStep(index)} className={cn('flex w-full items-center gap-3 border-l-2 px-3 py-2.5 text-left transition-colors', active ? 'border-primary bg-primary/5' : 'border-transparent hover:bg-accent/20', !complete && 'opacity-75')}>
+                    <span className={cn('flex h-8 w-8 items-center justify-center rounded-full text-xs font-medium', complete ? 'bg-emerald-500 text-white' : active ? 'border border-primary/30 bg-primary/10 text-primary' : 'bg-muted text-muted-foreground')}>
+                      {complete ? <Check className="h-4 w-4" /> : index + 1}
+                    </span>
+                    <div>
+                      <p className="text-sm font-medium">{label}</p>
+                      <p className="text-xs text-muted-foreground">{index === 0 ? 'Title and description' : index === 1 ? 'Priority and ownership' : 'Review before saving'}</p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </aside>
+
+          <div className="flex min-h-0 flex-col">
+            <div className="flex items-center justify-between border-b px-6 py-4 lg:px-8">
+              <div>
+                <p className="text-sm text-muted-foreground">Task Builder</p>
+                <h2 className="text-lg font-semibold tracking-tight">Step {step + 1} of {TASK_STEPS.length}</h2>
+              </div>
+              <div />
+            </div>
+
+            <div className="min-h-0 flex-1 overflow-y-auto px-6 py-6 lg:px-8">
+              <div className="w-full space-y-6">
+                <div className="space-y-6">
+                  {step === 0 && (
+                    <div className="space-y-4">
+                      <div className="space-y-2"><Label htmlFor="task-title">Title</Label><Input id="task-title" value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} placeholder="Task title" /></div>
+                      <div className="space-y-2"><Label htmlFor="task-description">Description</Label><Textarea id="task-description" className="min-h-[120px]" value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} placeholder="Brief description..." /></div>
+                    </div>
+                  )}
+
+                  {step === 1 && (
+                    <div className="space-y-4">
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <div className="space-y-2"><Label htmlFor="task-priority">Priority</Label>
+                          <Select value={f.priority} onValueChange={(v) => setF({ ...f, priority: v })}><SelectTrigger id="task-priority"><SelectValue /></SelectTrigger>
+                            <SelectContent><SelectItem value="low">Low</SelectItem><SelectItem value="medium">Medium</SelectItem><SelectItem value="high">High</SelectItem></SelectContent></Select>
+                        </div>
+                        <div className="space-y-2"><Label htmlFor="task-status">Status</Label>
+                          <Select value={f.status} onValueChange={(v) => setF({ ...f, status: v })}><SelectTrigger id="task-status"><SelectValue /></SelectTrigger>
+                            <SelectContent><SelectItem value="todo">To Do</SelectItem><SelectItem value="in_progress">In Progress</SelectItem><SelectItem value="done">Done</SelectItem></SelectContent></Select>
+                        </div>
+                      </div>
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <div className="space-y-2"><Label htmlFor="task-assignedTo">Assigned To</Label><Input id="task-assignedTo" value={f.assignedTo} onChange={(e) => setF({ ...f, assignedTo: e.target.value })} placeholder="Name" /></div>
+                        <div className="space-y-2"><Label htmlFor="task-dueDate">Due Date</Label><Input id="task-dueDate" type="date" value={f.dueDate} onChange={(e) => setF({ ...f, dueDate: e.target.value })} /></div>
+                      </div>
+                    </div>
+                  )}
+
+                  {step === 2 && (
+                    <div className="space-y-4">
+                      <div className="space-y-2"><Label htmlFor="task-linkedPolicy">Linked Policy</Label>
+                        <Select value={f.policyId || '__none__'} onValueChange={(v) => setF({ ...f, policyId: v === '__none__' ? '' : v })}><SelectTrigger id="task-linkedPolicy"><SelectValue placeholder="None" /></SelectTrigger>
+                          <SelectContent><SelectItem value="__none__">None</SelectItem>{policies?.map((p) => <SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>)}</SelectContent></Select></div>
+                      <div className="border-l border-border/40 pl-4 space-y-3">
+                        {[
+                          { label: 'Title', value: f.title || '—' },
+                          { label: 'Priority', value: f.priority },
+                          { label: 'Status', value: f.status },
+                          { label: 'Assigned To', value: f.assignedTo || '—' },
+                          { label: 'Due Date', value: f.dueDate || '—' },
+                          { label: 'Linked Policy', value: f.policyId ? (policies?.find((p) => p.id === f.policyId)?.title ?? '—') : 'None' },
+                        ].map((row, index) => (
+                          <div key={row.label}>
+                            {index > 0 && <Separator className="mb-3" />}
+                            <div className="flex justify-between items-center gap-3">
+                              <span className="text-sm text-muted-foreground">{row.label}</span>
+                              <span className="max-w-[320px] truncate text-right text-sm font-medium">{row.value}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex flex-col-reverse gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
+                  <Button variant="outline" onClick={() => setStep((s) => Math.max(s - 1, 0))} disabled={step === 0}><ChevronLeft className="h-4 w-4" />Back</Button>
+                  <div className="flex gap-2">
+                    <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+                    {step === 2
+                      ? <Button onClick={save} disabled={!f.title}>{task ? 'Save Changes' : 'Create Task'}</Button>
+                      : <Button onClick={() => setStep((s) => Math.min(s + 1, TASK_STEPS.length - 1))} disabled={step === 0 ? !f.title : false}>Continue</Button>
+                    }
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2"><Label>Assigned To</Label><Input value={f.assignedTo} onChange={(e) => setF({ ...f, assignedTo: e.target.value })} placeholder="Name" /></div>
-            <div className="space-y-2"><Label>Due Date</Label><Input type="date" value={f.dueDate} onChange={(e) => setF({ ...f, dueDate: e.target.value })} /></div>
-          </div>
-          <div className="space-y-2"><Label>Linked Policy</Label>
-            <Select value={f.policyId || '__none__'} onValueChange={(v) => setF({ ...f, policyId: v === '__none__' ? '' : v })}><SelectTrigger><SelectValue placeholder="None" /></SelectTrigger>
-              <SelectContent><SelectItem value="__none__">None</SelectItem>{policies?.map((p) => <SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>)}</SelectContent></Select></div>
-        </div>
-        <div className="flex justify-end gap-2 pt-2">
-          <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button onClick={save} disabled={!f.title}>{task ? 'Save Changes' : 'Create Task'}</Button>
         </div>
       </DialogContent>
     </Dialog>
@@ -73,7 +164,7 @@ function DeleteDialog({ task, onDone }: { task: Task; onDone: () => void }) {
   const del = async () => { await db.tasks.delete(task.id); toast.success('Task deleted'); setOpen(false); onDone(); };
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive"><Trash2 className="h-3.5 w-3.5" /></Button></DialogTrigger>
+      <DialogTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" aria-label={`Delete task ${task.title}`}><Trash2 className="h-3.5 w-3.5" /></Button></DialogTrigger>
       <DialogContent className="sm:max-w-sm">
         <DialogHeader><DialogTitle>Delete Task</DialogTitle></DialogHeader>
         <p className="text-sm text-muted-foreground py-2">Are you sure you want to delete "{task.title}"? This cannot be undone.</p>
@@ -133,7 +224,7 @@ export default function Tasks() {
           </div>
           <div className="flex items-center gap-0.5 shrink-0">
             {t.status === 'todo' && <Button variant="outline" size="sm" className="h-8 text-xs px-2" onClick={() => start(t)}>Start</Button>}
-            <TaskDialog task={t} trigger={<Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground"><Pencil className="h-3.5 w-3.5" /></Button>} onDone={() => {}} />
+            <TaskDialog task={t} trigger={<Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" aria-label={`Edit task ${t.title}`}><Pencil className="h-3.5 w-3.5" /></Button>} onDone={() => {}} />
             <DeleteDialog task={t} onDone={() => {}} />
           </div>
         </div>
@@ -163,7 +254,7 @@ export default function Tasks() {
           <div className="flex items-center gap-1 pt-1 border-t">
             {t.status === 'todo' && <Button variant="outline" size="sm" className="h-7 text-[10px] px-2" onClick={() => start(t)}>Start</Button>}
             <div className="flex-1" />
-            <TaskDialog task={t} trigger={<Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground"><Pencil className="h-3 w-3" /></Button>} onDone={() => {}} />
+            <TaskDialog task={t} trigger={<Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground" aria-label={`Edit task ${t.title}`}><Pencil className="h-3 w-3" /></Button>} onDone={() => {}} />
             <DeleteDialog task={t} onDone={() => {}} />
           </div>
         </CardContent>
@@ -197,7 +288,7 @@ export default function Tasks() {
               <div className="flex items-center gap-0.5 pt-1 border-t">
                 {t.status === 'todo' && <Button variant="outline" size="sm" className="h-7 text-[10px] px-2" onClick={() => start(t)}>Start</Button>}
                 <div className="flex-1" />
-                <TaskDialog task={t} trigger={<Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground"><Pencil className="h-3 w-3" /></Button>} onDone={() => {}} />
+                <TaskDialog task={t} trigger={<Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground" aria-label={`Edit task ${t.title}`}><Pencil className="h-3 w-3" /></Button>} onDone={() => {}} />
                 <DeleteDialog task={t} onDone={() => {}} />
               </div>
             </div>
@@ -231,9 +322,10 @@ export default function Tasks() {
           {/* View mode toggle */}
           <div className="flex rounded-lg border p-0.5">
             {VIEW_ICONS.map(v => (
-              <button
+                <button
                 key={v.mode}
                 onClick={() => setViewMode(v.mode)}
+                  aria-label={`Switch to ${v.label.toLowerCase()} view`}
                 className={cn(
                   'flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors',
                   viewMode === v.mode ? 'bg-accent text-foreground' : 'text-muted-foreground hover:text-foreground'
@@ -245,7 +337,7 @@ export default function Tasks() {
             ))}
           </div>
           <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
-            <SelectTrigger className="w-[110px] sm:w-[130px] h-9"><SelectValue /></SelectTrigger>
+            <SelectTrigger id="tasks-sortBy" className="w-[110px] sm:w-[130px] h-9"><SelectValue /></SelectTrigger>
             <SelectContent><SelectItem value="dueDate">Due Date</SelectItem><SelectItem value="priority">Priority</SelectItem><SelectItem value="title">Name</SelectItem></SelectContent>
           </Select>
           <div className="flex-1" />
@@ -281,7 +373,7 @@ export default function Tasks() {
               </div>
             </div>
           )}
-          {!tasks?.length && <Card><CardContent className="py-12 text-center text-muted-foreground">No tasks yet.</CardContent></Card>}
+          {!tasks?.length && <EmptyState icon={LayoutGrid} title="No tasks yet" description="Create a task to start tracking assignments and due dates." className="py-12" />}
         </div>
       )}
 
@@ -295,10 +387,10 @@ export default function Tasks() {
           <TabsContent value="active" className="mt-4 space-y-4">
             {prog.length > 0 && <div className="space-y-2"><p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">In Progress</p>{[...prog].sort(sorter).map(listRow)}</div>}
             {todo.length > 0 && <div className="space-y-2"><p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">To Do</p>{[...todo].sort(sorter).map(listRow)}</div>}
-            {todo.length === 0 && prog.length === 0 && <Card><CardContent className="py-12 text-center text-muted-foreground">All tasks completed!</CardContent></Card>}
+            {todo.length === 0 && prog.length === 0 && <EmptyState icon={Check} title="All tasks complete" description="Nothing is currently in progress. New tasks will appear here when you create them." className="py-12" />}
           </TabsContent>
           <TabsContent value="done" className="mt-4 space-y-2">
-            {done.length === 0 ? <Card><CardContent className="py-12 text-center text-muted-foreground">No completed tasks.</CardContent></Card> : [...done].sort(sorter).map(listRow)}
+            {done.length === 0 ? <EmptyState icon={Check} title="No completed tasks yet" description="Finished tasks will show up here once work gets marked done." className="py-12" /> : [...done].sort(sorter).map(listRow)}
           </TabsContent>
         </Tabs>
       )}
