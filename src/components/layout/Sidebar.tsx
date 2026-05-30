@@ -4,6 +4,17 @@ import { cn } from '@/lib/utils';
 import { useUIStore } from '@/store/uiStore';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { useAuthStore } from '@/store/authStore';
+import { useNavigate } from 'react-router-dom';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { useState } from 'react';
 
@@ -48,7 +59,10 @@ function NavLink({ item, onClick }: { item: typeof NAV_ITEMS[0]; onClick?: () =>
 /** Desktop sidebar */
 export function Sidebar() {
   const { sidebarOpen, toggleSidebar } = useUIStore();
-  const loc = useLocation();
+  
+  const user = useAuthStore((s) => s.user);
+  const logout = useAuthStore((s) => s.logout);
+  const navigate = useNavigate();
   if (!sidebarOpen) return null;
 
   return (
@@ -70,13 +84,38 @@ export function Sidebar() {
         </nav>
       </ScrollArea>
       <div className="px-2 py-3 border-t">
-        <Link to="/settings" className={cn(
-          'flex items-center gap-3 rounded-md px-3 py-1.5 text-[13px] transition-colors',
-          loc.pathname === '/settings' ? 'text-foreground font-medium' : 'text-muted-foreground hover:text-foreground'
-        )}>
-          <Settings className="h-4 w-4" />
-          Settings
-        </Link>
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-muted-foreground"> </span>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 rounded-full p-0">
+                <Avatar className="h-8 w-8">
+                  <AvatarFallback className="text-[11px] font-medium">{(user?.name || user?.email || 'U').toString().slice(0,2).toUpperCase()}</AvatarFallback>
+                </Avatar>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel className="space-y-0.5">
+                <p className="text-sm">{user?.name || 'Account'}</p>
+                <p className="text-xs text-muted-foreground font-normal">{user?.email || ''}</p>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onSelect={() => navigate('/profile')}>Profile</DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => navigate('/reminders')}>Reminders</DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => navigate('/settings')}>Settings</DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onSelect={() => {
+                  logout();
+                  navigate('/login', { replace: true });
+                }}
+                className="text-destructive focus:text-destructive"
+              >
+                Logout
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
     </aside>
   );

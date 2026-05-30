@@ -166,6 +166,7 @@ export default function Reminders() {
     return new Date(now.getFullYear(), now.getMonth(), 1);
   });
   const [selectedDate, setSelectedDate] = useState(() => toDateKey(Date.now()));
+  const [dayDialogOpen, setDayDialogOpen] = useState(false);
   const [todayKey] = useState(() => toDateKey(Date.now()));
 
   const reminders = useMemo<ReminderItem[]>(() => {
@@ -262,12 +263,6 @@ export default function Reminders() {
   }, [monthCursor]);
 
   const selectedItems = remindersByDate.get(selectedDate) ?? [];
-  const upcomingItems = reminders.filter((item) => {
-    const dateOnly = new Date(new Date(item.date).toDateString()).getTime();
-    const nowOnly = new Date(new Date().toDateString()).getTime();
-    return dateOnly >= nowOnly && dateOnly <= nowOnly + 30 * DAY;
-  }).slice(0, 8);
-
   const previousMonth = () => setMonthCursor((m) => new Date(m.getFullYear(), m.getMonth() - 1, 1));
   const nextMonth = () => setMonthCursor((m) => new Date(m.getFullYear(), m.getMonth() + 1, 1));
 
@@ -283,7 +278,7 @@ export default function Reminders() {
         <ReminderDialog onDone={() => {}} />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
+      <div className="grid gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-base">
@@ -306,9 +301,12 @@ export default function Reminders() {
                 return (
                   <button
                     key={cell.key}
-                    onClick={() => setSelectedDate(cell.key)}
+                    onClick={() => {
+                      setSelectedDate(cell.key);
+                      setDayDialogOpen(true);
+                    }}
                     className={cn(
-                      'min-h-[84px] rounded-md border p-1.5 text-left transition-colors',
+                      'min-h-[110px] rounded-md border p-2 text-left transition-colors',
                       cell.inMonth ? 'bg-card' : 'bg-muted/40 text-muted-foreground',
                       isSelected && 'ring-2 ring-primary/60',
                       isToday && 'border-primary/50'
@@ -327,46 +325,31 @@ export default function Reminders() {
             </div>
           </CardContent>
         </Card>
-
-        <div className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">
-                {parseDateKeyToLocalDate(selectedDate).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {selectedItems.length === 0 && <p className="text-sm text-muted-foreground">No reminders for this date.</p>}
-              {selectedItems.map((item) => (
-                <Link key={item.id} to={item.sourcePath} className="block rounded-lg border p-3 hover:bg-accent/40 transition-colors">
-                  <div className="flex items-start justify-between gap-2">
-                    <p className="text-sm font-medium">{item.title}</p>
-                    <Badge variant={item.priority === 'high' ? 'destructive' : item.priority === 'medium' ? 'default' : 'secondary'} className="text-[10px]">
-                      {item.priority}
-                    </Badge>
-                  </div>
-                  {item.description && <p className="text-xs text-muted-foreground mt-1">{item.description}</p>}
-                </Link>
-              ))}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Upcoming (30 Days)</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {upcomingItems.length === 0 && <p className="text-sm text-muted-foreground">No upcoming reminders.</p>}
-              {upcomingItems.map((item) => (
-                <div key={item.id} className="rounded-md border p-2">
-                  <p className="text-sm">{item.title}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">{new Date(item.date).toLocaleDateString()}</p>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        </div>
       </div>
+
+      <Dialog open={dayDialogOpen} onOpenChange={setDayDialogOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>
+              {parseDateKeyToLocalDate(selectedDate).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2">
+            {selectedItems.length === 0 && <p className="text-sm text-muted-foreground">No reminders for this date.</p>}
+            {selectedItems.map((item) => (
+              <Link key={item.id} to={item.sourcePath} className="block rounded-lg border p-3 hover:bg-accent/40 transition-colors">
+                <div className="flex items-start justify-between gap-2">
+                  <p className="text-sm font-medium">{item.title}</p>
+                  <Badge variant={item.priority === 'high' ? 'destructive' : item.priority === 'medium' ? 'default' : 'secondary'} className="text-[10px]">
+                    {item.priority}
+                  </Badge>
+                </div>
+                {item.description && <p className="text-xs text-muted-foreground mt-1">{item.description}</p>}
+              </Link>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

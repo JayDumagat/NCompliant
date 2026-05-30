@@ -115,15 +115,20 @@ export interface TemplateStep {
   completed: boolean;
 }
 
+export type TemplateKind = 'task' | 'policy' | 'assessment' | 'checklist' | 'incident' | 'training' | 'vendor' | 'custom';
+
 export interface TaskTemplate {
   id: string;
   workspaceId: string;
   title: string;
   description: string;
+  kind?: TemplateKind;
   category: 'audit' | 'policy_review' | 'pia' | 'incident' | 'training' | 'report' | 'custom';
   steps: TemplateStep[];
   recurrence?: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'annual';
   priority: 'low' | 'medium' | 'high';
+  tags?: string[];
+  payload?: string;
   createdAt: number;
 }
 
