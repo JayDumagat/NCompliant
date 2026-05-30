@@ -130,7 +130,7 @@ export default function Register() {
           </Link>
           <div className="lg:hidden" />
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={cycleTheme} title={`Theme: ${theme}`}>
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={cycleTheme} title={`Theme: ${theme}`} aria-label={`Theme: ${theme}`}>
               <ThemeIcon className="h-4 w-4" />
             </Button>
           </div>

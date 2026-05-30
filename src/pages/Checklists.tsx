@@ -4,15 +4,18 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
-import { Plus, Trash2, X, Download, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, Trash2, X, Download, ChevronDown, ChevronUp, LayoutTemplate, ChevronLeft, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
+import { Separator } from '@/components/ui/separator';
+
+const CHECKLIST_STEPS = ['Basics', 'Items', 'Review'];
 
 const TYPE_LABEL: Record<string, string> = { audit: 'Audit', incident: 'Incident', training: 'Training', policy_adherence: 'Policy', custom: 'Custom' };
 const FILTER_TABS = [
@@ -25,6 +28,7 @@ const FILTER_TABS = [
 
 function NewChecklistDialog() {
   const [open, setOpen] = useState(false);
+  const [step, setStep] = useState(0);
   const policies = useLiveQuery(() => db.policies.toArray(), []);
   const [f, setF] = useState({ title: '', type: 'custom' as Checklist['type'], linkedPolicyId: '', items: [] as string[] });
   const [newItem, setNewItem] = useState('');
@@ -39,43 +43,127 @@ function NewChecklistDialog() {
       items: f.items.map(text => ({ id: crypto.randomUUID(), text, completed: false })),
     });
     toast.success('Checklist created');
-    setOpen(false); setF({ title: '', type: 'custom', linkedPolicyId: '', items: [] });
+    setOpen(false); setStep(0); setF({ title: '', type: 'custom', linkedPolicyId: '', items: [] });
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild><Button className="gap-2 shrink-0"><Plus className="h-4 w-4" /><span className="hidden sm:inline">New Checklist</span></Button></DialogTrigger>
-      <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto custom-scrollbar">
-        <DialogHeader><DialogTitle>New Checklist</DialogTitle></DialogHeader>
-        <div className="space-y-4 py-2">
-          <div className="space-y-2"><Label>Title</Label><Input value={f.title} onChange={e => setF({ ...f, title: e.target.value })} placeholder="Checklist name" /></div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="space-y-2"><Label>Type</Label>
-              <Select value={f.type} onValueChange={v => setF({ ...f, type: v as Checklist['type'] })}><SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{Object.entries(TYPE_LABEL).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}</SelectContent></Select></div>
-            <div className="space-y-2"><Label>Linked Policy</Label>
-              <Select value={f.linkedPolicyId || '__none__'} onValueChange={v => setF({ ...f, linkedPolicyId: v === '__none__' ? '' : v })}><SelectTrigger><SelectValue placeholder="None" /></SelectTrigger>
-                <SelectContent><SelectItem value="__none__">None</SelectItem>{policies?.map(p => <SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>)}</SelectContent></Select></div>
-          </div>
-          <div className="space-y-2">
-            <Label>Items ({f.items.length})</Label>
-            <div className="space-y-1.5 max-h-[140px] overflow-y-auto">
-              {f.items.map((item, i) => (
-                <div key={i} className="flex items-center gap-2 rounded border px-3 py-2">
-                  <span className="text-sm flex-1">{i + 1}. {item}</span>
-                  <button onClick={() => removeItem(i)} className="text-muted-foreground hover:text-destructive"><X className="h-3.5 w-3.5" /></button>
+      <DialogContent className="w-[min(100vw-1rem,1440px)] max-w-none h-[calc(100vh-1rem)] overflow-hidden p-0 sm:rounded-2xl">
+        <div className="grid h-full min-h-0 lg:grid-cols-[300px_1fr]">
+          <aside className="hidden min-h-0 flex-col border-r border-border/40 bg-background p-6 lg:flex">
+            <div className="space-y-3">
+              <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <LayoutTemplate className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-lg font-semibold tracking-tight">New Checklist</p>
+                <p className="text-sm text-muted-foreground">Build a reusable checklist with a clear step-by-step flow.</p>
+              </div>
+            </div>
+
+            <div className="mt-8 space-y-2">
+              {CHECKLIST_STEPS.map((label, index) => {
+                const active = index === step;
+                const complete = index < step;
+                return (
+                  <button key={label} onClick={() => complete && setStep(index)} className={cn('flex w-full items-center gap-3 border-l-2 px-3 py-2.5 text-left transition-colors', active ? 'border-primary bg-primary/5' : 'border-transparent hover:bg-accent/20', !complete && 'opacity-75')}>
+                    <span className={cn('flex h-8 w-8 items-center justify-center rounded-full text-xs font-medium', complete ? 'bg-emerald-500 text-white' : active ? 'border border-primary/30 bg-primary/10 text-primary' : 'bg-muted text-muted-foreground')}>
+                      {complete ? <Check className="h-4 w-4" /> : index + 1}
+                    </span>
+                    <div>
+                      <p className="text-sm font-medium">{label}</p>
+                      <p className="text-xs text-muted-foreground">{index === 0 ? 'Checklist setup' : index === 1 ? 'Checklist items' : 'Summary and create'}</p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </aside>
+
+          <div className="flex min-h-0 flex-col">
+            <div className="flex items-center justify-between border-b px-6 py-4 lg:px-8">
+              <div>
+                <p className="text-sm text-muted-foreground">Checklist Builder</p>
+                <h2 className="text-lg font-semibold tracking-tight">Step {step + 1} of {CHECKLIST_STEPS.length}</h2>
+              </div>
+              <div />
+            </div>
+
+            <div className="min-h-0 flex-1 overflow-y-auto px-6 py-6 lg:px-8">
+              <div className="w-full space-y-6">
+                <div className="space-y-6">
+                  {step === 0 && (
+                    <div className="space-y-4">
+                      <div className="space-y-2"><Label htmlFor="checklist-title">Title</Label><Input id="checklist-title" value={f.title} onChange={e => setF({ ...f, title: e.target.value })} placeholder="Checklist name" /></div>
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <div className="space-y-2"><Label htmlFor="checklist-type">Type</Label>
+                          <Select value={f.type} onValueChange={v => setF({ ...f, type: v as Checklist['type'] })}><SelectTrigger id="checklist-type"><SelectValue /></SelectTrigger>
+                            <SelectContent>{Object.entries(TYPE_LABEL).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}</SelectContent></Select>
+                        </div>
+                        <div className="space-y-2"><Label htmlFor="checklist-linkedPolicy">Linked Policy</Label>
+                          <Select value={f.linkedPolicyId || '__none__'} onValueChange={v => setF({ ...f, linkedPolicyId: v === '__none__' ? '' : v })}><SelectTrigger id="checklist-linkedPolicy"><SelectValue placeholder="None" /></SelectTrigger>
+                            <SelectContent><SelectItem value="__none__">None</SelectItem>{policies?.map(p => <SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>)}</SelectContent></Select>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {step === 1 && (
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label>Items ({f.items.length})</Label>
+                        <div className="space-y-1.5 max-h-[240px] overflow-y-auto rounded-2xl border p-3">
+                          {f.items.map((item, i) => (
+                            <div key={i} className="flex items-center gap-2 rounded border px-3 py-2">
+                              <span className="text-sm flex-1">{i + 1}. {item}</span>
+                              <button onClick={() => removeItem(i)} className="text-muted-foreground hover:text-destructive"><X className="h-3.5 w-3.5" /></button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Input value={newItem} onChange={e => setNewItem(e.target.value)} placeholder="Add item..." onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addItem())} />
+                        <Button variant="outline" size="sm" onClick={addItem} disabled={!newItem.trim()}>Add</Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {step === 2 && (
+                    <div className="space-y-4">
+                      <div className="border-l border-border/40 pl-4 space-y-3">
+                        {[
+                          { label: 'Title', value: f.title || '—' },
+                          { label: 'Type', value: TYPE_LABEL[f.type] },
+                          { label: 'Linked Policy', value: f.linkedPolicyId ? (policies?.find((p) => p.id === f.linkedPolicyId)?.title ?? '—') : 'None' },
+                          { label: 'Items', value: `${f.items.length} items` },
+                        ].map((row, index) => (
+                          <div key={row.label}>
+                            {index > 0 && <Separator className="mb-3" />}
+                            <div className="flex justify-between items-center gap-3">
+                              <span className="text-sm text-muted-foreground">{row.label}</span>
+                              <span className="max-w-[320px] truncate text-right text-sm font-medium">{row.value}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
-              ))}
-            </div>
-            <div className="flex gap-2">
-              <Input value={newItem} onChange={e => setNewItem(e.target.value)} placeholder="Add item..." onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addItem())} />
-              <Button variant="outline" size="sm" onClick={addItem} disabled={!newItem.trim()}>Add</Button>
+
+                <div className="flex flex-col-reverse gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
+                  <Button variant="outline" onClick={() => setStep((s) => Math.max(s - 1, 0))} disabled={step === 0}><ChevronLeft className="h-4 w-4" />Back</Button>
+                  <div className="flex gap-2">
+                    <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+                    {step === 2
+                      ? <Button onClick={save} disabled={!f.title || f.items.length === 0}>Create</Button>
+                      : <Button onClick={() => setStep((s) => Math.min(s + 1, CHECKLIST_STEPS.length - 1))} disabled={step === 0 ? !f.title : false}>Continue</Button>
+                    }
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-        <div className="flex justify-end gap-2 pt-2">
-          <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button onClick={save} disabled={!f.title || f.items.length === 0}>Create</Button>
         </div>
       </DialogContent>
     </Dialog>
@@ -135,8 +223,8 @@ function ChecklistCard({ cl }: { cl: Checklist }) {
             {expanded ? <><ChevronUp className="h-3.5 w-3.5" />Collapse</> : <><ChevronDown className="h-3.5 w-3.5" />Expand</>}
           </Button>
           <div className="flex-1" />
-          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={exportJSON}><Download className="h-3.5 w-3.5" /></Button>
-          <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive" onClick={del}><Trash2 className="h-3.5 w-3.5" /></Button>
+          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={exportJSON} aria-label={`Export checklist ${cl.title}`}><Download className="h-3.5 w-3.5" /></Button>
+          <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive" onClick={del} aria-label={`Delete checklist ${cl.title}`}><Trash2 className="h-3.5 w-3.5" /></Button>
         </div>
         {expanded && (
           <div className="space-y-1.5 pt-1">

@@ -54,10 +54,10 @@ export default function Policies() {
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input placeholder="Search policies..." className="pl-9" value={q} onChange={(e) => setQ(e.target.value)} />
+          <Input aria-label="Search policies" placeholder="Search policies..." className="pl-9" value={q} onChange={(e) => setQ(e.target.value)} />
         </div>
         <Select value={filter} onValueChange={setFilter}>
-          <SelectTrigger className="w-full sm:w-[140px]"><SelectValue /></SelectTrigger>
+          <SelectTrigger id="policies-filter" className="w-full sm:w-[140px]"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All ({counts.all})</SelectItem>
             <SelectItem value="active">Active ({counts.active})</SelectItem>

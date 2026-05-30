@@ -61,7 +61,13 @@ export function Topbar() {
       </div>
       {/* Desktop sidebar toggle */}
       {!sidebarOpen && (
-        <Button variant="ghost" size="icon" className="h-8 w-8 hidden lg:flex" onClick={toggleSidebar}>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 hidden lg:flex"
+          onClick={toggleSidebar}
+          aria-label="Open sidebar"
+        >
           <Menu className="h-4 w-4" />
         </Button>
       )}
@@ -72,7 +78,7 @@ export function Topbar() {
             <Download className="h-3.5 w-3.5" />Install
           </Button>
         )}
-        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={cycleTheme} title={`Theme: ${theme}`}>
+        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={cycleTheme} title={`Theme: ${theme}`} aria-label={`Theme: ${theme}`}>
           <ThemeIcon className="h-4 w-4" />
         </Button>
         {offline && (

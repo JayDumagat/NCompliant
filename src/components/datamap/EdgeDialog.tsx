@@ -64,14 +64,15 @@ export function EdgeDialog({ open, onOpenChange, initialData, onSave }: EdgeDial
         <DialogHeader><DialogTitle>{initialData ? 'Edit Connection' : 'New Connection'}</DialogTitle></DialogHeader>
         <div className="space-y-4 py-2">
           <div className="space-y-1.5">
-            <Label className="text-xs">Label</Label>
-            <Input value={label} onChange={e => setLabel(e.target.value)} placeholder="e.g. Payment Processing" />
+            <Label htmlFor="edge-label" className="text-xs">Label</Label>
+            <Input id="edge-label" value={label} onChange={e => setLabel(e.target.value)} placeholder="e.g. Payment Processing" />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-xs">Data Types</Label>
+            <Label htmlFor="edge-typeInput" className="text-xs">Data Types</Label>
             <div className="flex gap-2">
               <Input
                 value={typeInput}
+                id="edge-typeInput"
                 onChange={e => setTypeInput(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Add data type and press Enter"
@@ -84,7 +85,7 @@ export function EdgeDialog({ open, onOpenChange, initialData, onSave }: EdgeDial
                 {dataTypes.map(t => (
                   <Badge key={t} variant="secondary" className="gap-1 text-xs pr-1">
                     {t}
-                    <button onClick={() => removeType(t)} className="ml-0.5 hover:text-destructive transition-colors">
+                    <button type="button" onClick={() => removeType(t)} aria-label={`Remove ${t}`} className="ml-0.5 hover:text-destructive transition-colors">
                       <X className="h-3 w-3" />
                     </button>
                   </Badge>

@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { EmptyState } from '@/components/ui/empty-state';
 import { cn } from '@/lib/utils';
 import {
   AlertTriangle,
@@ -284,9 +285,9 @@ function TemplateDialog({ template, trigger, onDone }: { template?: TaskTemplate
         <div className="space-y-4 py-2">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label>Template Kind</Label>
+              <Label htmlFor="template-kind">Template Kind</Label>
               <Select value={form.kind} onValueChange={(value) => switchKind(value as TemplateKind)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger id="template-kind"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {KIND_ORDER.map((kind) => (
                     <SelectItem key={kind} value={kind}>{KIND_META[kind].label}</SelectItem>
@@ -295,9 +296,9 @@ function TemplateDialog({ template, trigger, onDone }: { template?: TaskTemplate
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Priority</Label>
+              <Label htmlFor="template-priority">Priority</Label>
               <Select value={form.priority} onValueChange={(value) => setForm((current) => ({ ...current, priority: value as TaskTemplate['priority'] }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger id="template-priority"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="low">Low</SelectItem>
                   <SelectItem value="medium">Medium</SelectItem>
@@ -308,8 +309,9 @@ function TemplateDialog({ template, trigger, onDone }: { template?: TaskTemplate
           </div>
 
           <div className="space-y-2">
-            <Label>Title</Label>
+            <Label htmlFor="template-title">Title</Label>
             <Input
+              id="template-title"
               value={form.title}
               onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))}
               placeholder={`${KIND_META[form.kind].label} template name`}
@@ -317,8 +319,9 @@ function TemplateDialog({ template, trigger, onDone }: { template?: TaskTemplate
           </div>
 
           <div className="space-y-2">
-            <Label>Description</Label>
+            <Label htmlFor="template-description">Description</Label>
             <Textarea
+              id="template-description"
               className="min-h-[72px]"
               value={form.description}
               onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))}
@@ -328,9 +331,9 @@ function TemplateDialog({ template, trigger, onDone }: { template?: TaskTemplate
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label>Subtype</Label>
+              <Label htmlFor="template-category">Subtype</Label>
               <Select value={form.category} onValueChange={(value) => setForm((current) => ({ ...current, category: value as TaskTemplate['category'] }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger id="template-category"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {Object.entries(CATEGORY_LABEL).map(([value, label]) => (
                     <SelectItem key={value} value={value}>{label}</SelectItem>
@@ -339,9 +342,9 @@ function TemplateDialog({ template, trigger, onDone }: { template?: TaskTemplate
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Recurrence</Label>
+              <Label htmlFor="template-recurrence">Recurrence</Label>
               <Select value={form.recurrence || 'none'} onValueChange={(value) => setForm((current) => ({ ...current, recurrence: value === 'none' ? '' : value }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger id="template-recurrence"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">None</SelectItem>
                   <SelectItem value="daily">Daily</SelectItem>
@@ -355,8 +358,9 @@ function TemplateDialog({ template, trigger, onDone }: { template?: TaskTemplate
           </div>
 
           <div className="space-y-2">
-            <Label>Tags</Label>
+            <Label htmlFor="template-tags">Tags</Label>
             <Input
+              id="template-tags"
               value={form.tags}
               onChange={(event) => setForm((current) => ({ ...current, tags: event.target.value }))}
               placeholder="privacy, recurring, legal, onboarding"
@@ -364,8 +368,9 @@ function TemplateDialog({ template, trigger, onDone }: { template?: TaskTemplate
           </div>
 
           <div className="space-y-2">
-            <Label>Starter Content</Label>
+            <Label htmlFor="template-starter">Starter Content</Label>
             <Textarea
+              id="template-starter"
               className="min-h-[120px] font-mono text-sm"
               value={form.payload}
               onChange={(event) => setForm((current) => ({ ...current, payload: event.target.value }))}
@@ -391,6 +396,7 @@ function TemplateDialog({ template, trigger, onDone }: { template?: TaskTemplate
             </div>
             <div className="flex gap-2">
               <Input
+                id="template-newStep"
                 value={newStep}
                 onChange={(event) => setNewStep(event.target.value)}
                 placeholder="Add a step or checklist item..."
@@ -538,6 +544,7 @@ export default function TaskTemplates() {
       <div className="flex items-center gap-3 rounded-lg border bg-card p-3">
         <Search className="h-4 w-4 text-muted-foreground" />
         <Input
+          aria-label="Search templates"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           className="border-0 bg-transparent px-0 shadow-none focus-visible:ring-0"
@@ -566,11 +573,7 @@ export default function TaskTemplates() {
       </Tabs>
 
       {normalizedTemplates.length === 0 && (
-        <Card>
-          <CardContent className="py-12 text-center text-muted-foreground">
-            No templates yet. Create a policy, assessment, task, checklist, or incident starter to get going.
-          </CardContent>
-        </Card>
+        <EmptyState icon={Sparkles} title="No templates yet" description="Create a policy, assessment, task, checklist, or incident starter to get going." className="py-12" />
       )}
     </div>
   );
@@ -585,11 +588,7 @@ function renderTemplates(
 ) {
   if (templates.length === 0) {
     return (
-      <Card>
-        <CardContent className="py-12 text-center text-muted-foreground">
-          No templates match this filter.
-        </CardContent>
-      </Card>
+      <EmptyState icon={Search} title="No templates match this filter" description="Try a different kind, keyword, or tag." className="py-12" />
     );
   }
 
@@ -659,14 +658,14 @@ function renderTemplates(
               <Button variant="outline" size="sm" className="gap-1.5 flex-1" onClick={() => useTemplate(template)}>
                 <Play className="h-3.5 w-3.5" />{primaryLabel}
               </Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => copyStarter(template)} title="Copy starter">
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => copyStarter(template)} title="Copy starter" aria-label={`Copy starter template ${template.title}`}>
                 <Copy className="h-3.5 w-3.5" />
               </Button>
-              <TemplateDialog template={template} trigger={<Button variant="ghost" size="icon" className="h-8 w-8"><Pencil className="h-3.5 w-3.5" /></Button>} onDone={() => {}} />
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => duplicate(template)} title="Duplicate">
+              <TemplateDialog template={template} trigger={<Button variant="ghost" size="icon" className="h-8 w-8" aria-label={`Edit template ${template.title}`}><Pencil className="h-3.5 w-3.5" /></Button>} onDone={() => {}} />
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => duplicate(template)} title="Duplicate" aria-label={`Duplicate template ${template.title}`}>
                 <Layers3 className="h-3.5 w-3.5" />
               </Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => del(template.id)} title="Delete">
+              <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => del(template.id)} title="Delete" aria-label={`Delete template ${template.title}`}>
                 <Trash2 className="h-3.5 w-3.5" />
               </Button>
             </div>

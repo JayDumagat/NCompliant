@@ -98,7 +98,7 @@ export default function Landing() {
             <span className="text-base font-semibold tracking-tight">NCompliant</span>
           </Link>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={cycleTheme} title={`Theme: ${theme}`}>
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={cycleTheme} title={`Theme: ${theme}`} aria-label={`Theme: ${theme}`}>
               <ThemeIcon className="h-4 w-4" />
             </Button>
             <Link to="/login">

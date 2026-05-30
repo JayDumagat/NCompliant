@@ -105,21 +105,21 @@ function VendorDialog({ trigger, vendor }: { trigger: React.ReactNode; vendor?: 
         <DialogHeader><DialogTitle>{vendor ? 'Edit Vendor' : 'Add Third-Party Vendor'}</DialogTitle></DialogHeader>
         <div className="space-y-4 py-2">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="space-y-2"><Label>Vendor Name</Label><Input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Vendor name" /></div>
-            <div className="space-y-2"><Label>Service Category</Label><Input value={form.serviceCategory} onChange={e => setForm({ ...form, serviceCategory: e.target.value })} placeholder="Cloud, Payroll, Legal..." /></div>
+            <div className="space-y-2"><Label htmlFor="vendor-name">Vendor Name</Label><Input id="vendor-name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Vendor name" /></div>
+            <div className="space-y-2"><Label htmlFor="vendor-serviceCategory">Service Category</Label><Input id="vendor-serviceCategory" value={form.serviceCategory} onChange={e => setForm({ ...form, serviceCategory: e.target.value })} placeholder="Cloud, Payroll, Legal..." /></div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="space-y-2"><Label>Contact Name</Label><Input value={form.contactName} onChange={e => setForm({ ...form, contactName: e.target.value })} placeholder="Primary contact" /></div>
-            <div className="space-y-2"><Label>Contact Email</Label><Input value={form.contactEmail} onChange={e => setForm({ ...form, contactEmail: e.target.value })} placeholder="name@vendor.com" /></div>
+            <div className="space-y-2"><Label htmlFor="vendor-contactName">Contact Name</Label><Input id="vendor-contactName" value={form.contactName} onChange={e => setForm({ ...form, contactName: e.target.value })} placeholder="Primary contact" /></div>
+            <div className="space-y-2"><Label htmlFor="vendor-contactEmail">Contact Email</Label><Input id="vendor-contactEmail" value={form.contactEmail} onChange={e => setForm({ ...form, contactEmail: e.target.value })} placeholder="name@vendor.com" /></div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="space-y-2"><Label>Status</Label><Select value={form.status} onValueChange={v => setForm({ ...form, status: v as ThirdPartyVendor['status'] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="active">Active</SelectItem><SelectItem value="under_review">Under Review</SelectItem><SelectItem value="offboarded">Offboarded</SelectItem></SelectContent></Select></div>
-            <div className="space-y-2"><Label>Risk Tier</Label><Select value={form.riskTier} onValueChange={v => setForm({ ...form, riskTier: v as ThirdPartyVendor['riskTier'] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="low">Low</SelectItem><SelectItem value="medium">Medium</SelectItem><SelectItem value="high">High</SelectItem><SelectItem value="critical">Critical</SelectItem></SelectContent></Select></div>
-            <div className="space-y-2"><Label>Data Access</Label><Select value={form.dataAccess} onValueChange={v => setForm({ ...form, dataAccess: v as ThirdPartyVendor['dataAccess'] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="none">None</SelectItem><SelectItem value="limited">Limited</SelectItem><SelectItem value="full">Full</SelectItem></SelectContent></Select></div>
+            <div className="space-y-2"><Label htmlFor="vendor-status">Status</Label><Select value={form.status} onValueChange={v => setForm({ ...form, status: v as ThirdPartyVendor['status'] })}><SelectTrigger id="vendor-status"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="active">Active</SelectItem><SelectItem value="under_review">Under Review</SelectItem><SelectItem value="offboarded">Offboarded</SelectItem></SelectContent></Select></div>
+            <div className="space-y-2"><Label htmlFor="vendor-riskTier">Risk Tier</Label><Select value={form.riskTier} onValueChange={v => setForm({ ...form, riskTier: v as ThirdPartyVendor['riskTier'] })}><SelectTrigger id="vendor-riskTier"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="low">Low</SelectItem><SelectItem value="medium">Medium</SelectItem><SelectItem value="high">High</SelectItem><SelectItem value="critical">Critical</SelectItem></SelectContent></Select></div>
+            <div className="space-y-2"><Label htmlFor="vendor-dataAccess">Data Access</Label><Select value={form.dataAccess} onValueChange={v => setForm({ ...form, dataAccess: v as ThirdPartyVendor['dataAccess'] })}><SelectTrigger id="vendor-dataAccess"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="none">None</SelectItem><SelectItem value="limited">Limited</SelectItem><SelectItem value="full">Full</SelectItem></SelectContent></Select></div>
           </div>
           <DataAssetPicker label="Data Assets Accessed" value={form.dataAssetIds} onChange={(dataAssetIds) => setForm({ ...form, dataAssetIds })} />
-          <div className="space-y-2"><Label>Tags (comma separated)</Label><Input value={form.tags} onChange={e => setForm({ ...form, tags: e.target.value })} placeholder="critical-vendor, finance, pii" /></div>
-          <div className="space-y-2"><Label>Notes</Label><Textarea className="min-h-[80px]" value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} /></div>
+          <div className="space-y-2"><Label htmlFor="vendor-tags">Tags (comma separated)</Label><Input id="vendor-tags" value={form.tags} onChange={e => setForm({ ...form, tags: e.target.value })} placeholder="critical-vendor, finance, pii" /></div>
+          <div className="space-y-2"><Label htmlFor="vendor-notes">Notes</Label><Textarea id="vendor-notes" className="min-h-[80px]" value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} /></div>
         </div>
         <div className="flex justify-end gap-2 pt-2">
           <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
@@ -172,19 +172,19 @@ function AssessmentDialog({ trigger, vendor }: { trigger: React.ReactNode; vendo
       <DialogContent className="sm:max-w-xl max-h-[85vh] overflow-y-auto">
         <DialogHeader><DialogTitle>New Vendor Assessment · {vendor.name}</DialogTitle></DialogHeader>
         <div className="space-y-4 py-2">
-          <div className="space-y-2"><Label>Assessment Title</Label><Input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} placeholder="Quarterly security review" /></div>
+          <div className="space-y-2"><Label htmlFor="assessment-title">Assessment Title</Label><Input id="assessment-title" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} placeholder="Quarterly security review" /></div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="space-y-2"><Label>Type</Label><Select value={form.assessmentType} onValueChange={v => setForm({ ...form, assessmentType: v as VendorAssessment['assessmentType'] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="security">Security</SelectItem><SelectItem value="privacy">Privacy</SelectItem><SelectItem value="compliance">Compliance</SelectItem><SelectItem value="operational">Operational</SelectItem></SelectContent></Select></div>
-            <div className="space-y-2"><Label>Status</Label><Select value={form.status} onValueChange={v => setForm({ ...form, status: v as VendorAssessment['status'] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="not_started">Not Started</SelectItem><SelectItem value="in_progress">In Progress</SelectItem><SelectItem value="completed">Completed</SelectItem></SelectContent></Select></div>
-            <div className="space-y-2"><Label>Risk</Label><Select value={form.riskLevel} onValueChange={v => setForm({ ...form, riskLevel: v as VendorAssessment['riskLevel'] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="unassessed">Unassessed</SelectItem><SelectItem value="low">Low</SelectItem><SelectItem value="medium">Medium</SelectItem><SelectItem value="high">High</SelectItem><SelectItem value="critical">Critical</SelectItem></SelectContent></Select></div>
+            <div className="space-y-2"><Label htmlFor="assessment-type">Type</Label><Select value={form.assessmentType} onValueChange={v => setForm({ ...form, assessmentType: v as VendorAssessment['assessmentType'] })}><SelectTrigger id="assessment-type"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="security">Security</SelectItem><SelectItem value="privacy">Privacy</SelectItem><SelectItem value="compliance">Compliance</SelectItem><SelectItem value="operational">Operational</SelectItem></SelectContent></Select></div>
+            <div className="space-y-2"><Label htmlFor="assessment-status">Status</Label><Select value={form.status} onValueChange={v => setForm({ ...form, status: v as VendorAssessment['status'] })}><SelectTrigger id="assessment-status"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="not_started">Not Started</SelectItem><SelectItem value="in_progress">In Progress</SelectItem><SelectItem value="completed">Completed</SelectItem></SelectContent></Select></div>
+            <div className="space-y-2"><Label htmlFor="assessment-risk">Risk</Label><Select value={form.riskLevel} onValueChange={v => setForm({ ...form, riskLevel: v as VendorAssessment['riskLevel'] })}><SelectTrigger id="assessment-risk"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="unassessed">Unassessed</SelectItem><SelectItem value="low">Low</SelectItem><SelectItem value="medium">Medium</SelectItem><SelectItem value="high">High</SelectItem><SelectItem value="critical">Critical</SelectItem></SelectContent></Select></div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="space-y-2"><Label>Score</Label><Input type="number" min="0" max="100" value={form.score} onChange={e => setForm({ ...form, score: e.target.value })} placeholder="0 - 100" /></div>
-            <div className="space-y-2"><Label>Assessed Date</Label><Input type="date" value={form.assessedAt} onChange={e => setForm({ ...form, assessedAt: e.target.value })} /></div>
-            <div className="space-y-2"><Label>Next Review</Label><Input type="date" value={form.nextReviewDate} onChange={e => setForm({ ...form, nextReviewDate: e.target.value })} /></div>
+            <div className="space-y-2"><Label htmlFor="assessment-score">Score</Label><Input id="assessment-score" type="number" min="0" max="100" value={form.score} onChange={e => setForm({ ...form, score: e.target.value })} placeholder="0 - 100" /></div>
+            <div className="space-y-2"><Label htmlFor="assessment-assessedAt">Assessed Date</Label><Input id="assessment-assessedAt" type="date" value={form.assessedAt} onChange={e => setForm({ ...form, assessedAt: e.target.value })} /></div>
+            <div className="space-y-2"><Label htmlFor="assessment-nextReviewDate">Next Review</Label><Input id="assessment-nextReviewDate" type="date" value={form.nextReviewDate} onChange={e => setForm({ ...form, nextReviewDate: e.target.value })} /></div>
           </div>
-          <div className="space-y-2"><Label>Summary</Label><Textarea className="min-h-[70px]" value={form.summary} onChange={e => setForm({ ...form, summary: e.target.value })} /></div>
-          <div className="space-y-2"><Label>Recommendations</Label><Textarea className="min-h-[70px]" value={form.recommendations} onChange={e => setForm({ ...form, recommendations: e.target.value })} /></div>
+          <div className="space-y-2"><Label htmlFor="assessment-summary">Summary</Label><Textarea id="assessment-summary" className="min-h-[70px]" value={form.summary} onChange={e => setForm({ ...form, summary: e.target.value })} /></div>
+          <div className="space-y-2"><Label htmlFor="assessment-recommendations">Recommendations</Label><Textarea id="assessment-recommendations" className="min-h-[70px]" value={form.recommendations} onChange={e => setForm({ ...form, recommendations: e.target.value })} /></div>
         </div>
         <div className="flex justify-end gap-2 pt-2">
           <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
@@ -255,9 +255,9 @@ export default function Vendors() {
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3">
-        <Input value={q} onChange={e => setQ(e.target.value)} placeholder="Search vendor, service, or contact..." className="sm:max-w-sm" />
+        <Input aria-label="Search vendors" value={q} onChange={e => setQ(e.target.value)} placeholder="Search vendor, service, or contact..." className="sm:max-w-sm" />
         <Select value={riskFilter} onValueChange={v => setRiskFilter(v as typeof riskFilter)}>
-          <SelectTrigger className="w-full sm:w-[180px]"><SelectValue /></SelectTrigger>
+          <SelectTrigger id="vendors-riskFilter" className="w-full sm:w-[180px]"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All risk tiers</SelectItem>
             <SelectItem value="critical">Critical</SelectItem>
